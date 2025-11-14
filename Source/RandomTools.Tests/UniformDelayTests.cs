@@ -2,77 +2,89 @@
 using RandomTools.Core;
 using RandomTools.Core.Options.Delay;
 using RandomTools.Core.Random.Delay;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace RandomTools.Tests
 {
 	[TestFixture]
 	public class UniformDelayTests
 	{
+		private record HitsBucket(double Min, double Max) {
+			public double Min { get; } = Min;
+			public double Max { get; } = Max;
+			public int Hits { get; set; } = 0;
+		}
+
 		private const int Segments = 100;
-		private const int Precision = 7;
-		private readonly Dictionary<Range, ulong> _stats = [];
 
-		private double PrepareStats(double min, double max)
+		private HitsBucket[]? _buckets;
+		private double _step;
+
+		[TearDown]
+		public void TearDown()
 		{
-			_stats.Clear();
-			double step = (max - min) / Segments;
-
-			for (int i = 1; i <= Segments; i++)
+			_step = 0;
+			if (_buckets != null)
 			{
-				double segmentMin = Math.Round(min + (step * (i - 1)), Precision);
-				double segmentMax = Math.Round(min + (step * i), Precision);
-
-				_stats[new Range
-				{
-					Minimum = segmentMin,
-					Maximum = segmentMax
-				}] = 0UL;
+				Array.Clear(_buckets);
+				_buckets = null;
 			}
+		}
 
-			return step;
+		private void PrepareBuckets(double min, double max)
+		{
+			_buckets = new HitsBucket[Segments];
+			_step = (max - min) / Segments;
+
+			for (int i = 0; i < Segments; i++)
+			{
+				double bMin = Math.Round(min + _step * i, 10);
+				double bMax = Math.Round(min + _step * (i + 1), 10);
+
+				_buckets[i] = new HitsBucket(bMin, bMax);
+			}
+		}
+
+		private int GetBucketIndex(double value, double min)
+		{
+			int index = (int)((value - min) / _step);
+			return index < Segments ? index : Segments - 1;
 		}
 
 		[Test]
-		[TestCase(10.0, 20.0,   1_000_000L)]
-		[TestCase(10.0, 20.0,  10_000_000L)]
-		public void TestOne(double min, double max, long trials)
+		[TestCase(10.0,  20.0,    1_000_000)]
+		[TestCase(10.0,  20.0,   10_000_000)]
+		[TestCase(10.0,  20.0,  100_000_000)]
+		[TestCase(42.91, 58.17,   1_000_000)]
+		[TestCase(42.91, 58.17,  10_000_000)]
+		[TestCase(42.91, 58.17, 100_000_000)]
+		public void Uniform_Distribution_Proof_On_ChiSquare(double min, double max, int trials)
 		{
 			var options = new DelayOptions.Uniform()
 				.WithMinimum(min)
 				.WithMaximum(max)
 				.WithTimeUnit(TimeUnit.Second);
-
+			 
 			options
 				.Invoking(opt => opt.Validate())
 				.Should()
 				.NotThrow<OptionsValidationException>();
 
-			PrepareStats(min, max);
+			PrepareBuckets(min, max);
 			var delay = new UniformDelay(options);
 
-			long remaining = trials;
-		    while (remaining-- != 0L)
+			for (long i = 0; i < trials; i++)
 			{
 				TimeSpan next = delay.Next();
 
-				var bucket = _stats.Keys.Single(
-					x => x.Minimum <= next.TotalSeconds && next.TotalSeconds < x.Maximum);
-
-				_stats[bucket]++;
+				int index = GetBucketIndex(next.TotalSeconds, min);
+				_buckets![index].Hits++;
 			}
 
-			double expected = 1.0 / Segments;
+			double chi = Algorithms.ChiSquare(trials, _buckets.Select(x => x.Hits));
+			double critical = Algorithms.CriticalChiSquare(Segments - 1);
 
-			var frequencies = _stats.Values.Select(next => (double)next / trials).ToList();
-
-			frequencies.Should()
-				.AllSatisfy(x => x.Should().BeApproximately(expected, 0.01d));
-
+			chi.Should().BeLessThan(critical);
 		}
 	}
 }
