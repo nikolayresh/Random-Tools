@@ -57,6 +57,17 @@
 				return this; 
 			}
 
+			internal double GetEffectiveMean()
+			{
+				if (Mean.HasValue)
+				{
+					return Mean.Value;
+				}
+
+				double value = (Minimum + Maximum) / 2.0;
+				return value;
+			}
+
 			/// <summary>
 			/// Validates the options to ensure:
 			/// - Mean (if specified) is within [Minimum, Maximum] (flexible, can equal the boundaries)
@@ -79,5 +90,67 @@
 				}
 			}
 		}
+
+		public sealed class Exponential : DelayOptionsBase<Exponential>
+		{
+			/// <summary>
+			/// Optional rate parameter λ of the exponential distribution.
+			/// Must be positive if specified.
+			/// If null, a default λ is computed so that the mean is equal to the midpoint of [Minimum, Maximum].
+			/// Mean = 1 / λ.
+			/// </summary>
+			internal double? Lambda;
+
+			/// <summary>
+			/// Sets the rate parameter λ (lambda) for the exponential distribution.
+			/// </summary>
+			/// <param name="value">Rate parameter. Must be positive.</param>
+			/// <returns>The current instance for fluent configuration.</returns>
+			public Exponential WithLambda(double value)
+			{
+				Lambda = value;
+				return this;
+			}
+
+			/// <summary>
+			/// Computes the effective rate parameter λ to be used.
+			/// If the user specified λ explicitly, it is returned.
+			/// Otherwise, a default value corresponding to the midpoint mean is used.
+			/// </summary>
+			internal double GetEffectiveLambda()
+			{
+				if (Lambda.HasValue)
+					return Lambda.Value;
+
+				// Default: mean = midpoint => lambda = 1 / mean
+				double mean = (Minimum + Maximum) / 2.0;
+
+				// Safety: avoid division by zero if the range is degenerate
+				if (mean <= 0)
+					throw new OptionsValidationException(
+						"Cannot compute default lambda: midpoint mean is zero or negative.");
+
+				return 1.0 / mean;
+			}
+
+			/// <summary>
+			/// Validates:
+			/// - Lambda (if specified) must be positive.
+			/// - Minimum/Maximum are validated by base class.
+			/// </summary>
+			public override void Validate()
+			{
+				base.Validate();
+
+				if (Lambda.HasValue && Lambda.Value <= 0)
+				{
+					throw new OptionsValidationException(
+						$"Lambda ({Lambda.Value}) must be positive.");
+				}
+
+				// No further constraints: exponential is unbounded above by definition
+			}
+		}
+
 	}
 }

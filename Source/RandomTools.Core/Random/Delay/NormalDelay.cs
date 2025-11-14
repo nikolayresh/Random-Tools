@@ -9,7 +9,7 @@ namespace RandomTools.Core.Random.Delay
 	/// - Mean defaults to midpoint of the range if not specified.
 	/// - StandardDeviation defaults to 1/6 of the range if not specified.
 	/// </summary>
-	public sealed class NormalDelay : RandomDelay<DelayOptions.Normal>
+	public sealed class NormalDelay : DelayBase<DelayOptions.Normal>
 	{
 		/// <summary>
 		/// Initializes a new instance of <see cref="NormalDelay"/>.

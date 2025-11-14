@@ -5,7 +5,7 @@ namespace RandomTools.Core.Random.Delay
 	/// <summary>
 	/// Produces delays based on a uniform random distribution across a configured range.
 	/// </summary>
-	public sealed class UniformDelay : RandomDelay<DelayOptions.Uniform>
+	public sealed class UniformDelay : DelayBase<DelayOptions.Uniform>
 	{
 		/// <summary>
 		/// Initializes a new instance of <see cref="UniformDelay"/> using the provided options.

@@ -43,12 +43,26 @@ namespace RandomTools.Core
 		/// Generates a cryptographically secure random byte.
 		/// </summary>
 		/// <returns>A random byte in the range [0, 255].</returns>
-		public static byte RandomByte()
+		public static byte NextByte()
 		{
+			// Span is still the modern, efficient way to do this.
 			Span<byte> buffer = stackalloc byte[1];
 			RandomNumberGenerator.Fill(buffer);
 
 			return buffer[0];
+		}
+
+		/// <summary>
+		/// Generates a cryptographically secure random integer within the range 
+		/// [<paramref name="min"/>, <paramref name="max"/>).
+		/// </summary>
+		/// <param name="min">The inclusive lower bound.</param>
+		/// <param name="max">The exclusive upper bound.</param>
+		/// <returns>A secure random integer ≥ <paramref name="min"/> and &lt; <paramref name="max"/>.</returns>
+		public static int NextInt(int min, int max)
+		{
+			// Relying on the built-in, secure method provided by the framework.
+			return RandomNumberGenerator.GetInt32(min, max);
 		}
 
 		/// <summary>

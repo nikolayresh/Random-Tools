@@ -17,18 +17,27 @@ namespace RandomTools.Core.Random.Delay
 	/// The type of options that control the behavior of the random delay.
 	/// Must inherit from <see cref="DelayOptionsBase{TOptions}"/>.
 	/// </typeparam>
-	public abstract class RandomDelay<TOptions> : RandomBase<TimeSpan, TOptions> where TOptions : DelayOptionsBase<TOptions>
+	public abstract class DelayBase<TOptions> : RandomBase<TimeSpan, TOptions> where TOptions : DelayOptionsBase<TOptions>
 	{
 		/// <summary>
-		/// Initializes a new instance of <see cref="RandomDelay{TOptions}"/> with the specified delay options.
+		/// Initializes a new instance of <see cref="DelayBase{TOptions}"/> with the specified delay options.
 		/// </summary>
 		/// <param name="options">
 		/// The configuration options that define how the random delay is calculated
 		/// (e.g., minimum and maximum delay, distribution type, etc.).
 		/// </param>
-		protected RandomDelay(TOptions options) : base(options)
+		protected DelayBase(TOptions options) : base(options)
 		{
 			// The base class RandomBase handles storing options and providing the Next() method.
+		}
+
+		public void Wait()
+		{
+			TimeSpan next = Next();
+			if (next <= TimeSpan.Zero)
+				return;
+
+			Thread.Sleep(next);
 		}
 
 		/// <summary>
@@ -53,7 +62,7 @@ namespace RandomTools.Core.Random.Delay
 		public async Task WaitAsync(CancellationToken cancellationToken = default)
 		{
 			TimeSpan next = Next();
-			if (next == TimeSpan.Zero)
+			if (next <= TimeSpan.Zero)
 				return;
 
 			// Await Task.Delay for the duration returned by Next(), supporting cancellation

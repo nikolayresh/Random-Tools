@@ -92,7 +92,7 @@ namespace RandomTools.Core.Random
 			}
 
 			// Pure 50/50 coin flip
-			byte randomByte = CoreTools.RandomByte();
+			byte randomByte = CoreTools.NextByte();
 			return (randomByte & 1) == 0;
 		}
 	}
