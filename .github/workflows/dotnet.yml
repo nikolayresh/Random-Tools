@@ -1,0 +1,44 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        working-directory: ./Source
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Restore Dependencies
+      run: dotnet restore
+      
+    - name: Build (Release)
+      run: dotnet build --no-restore --nologo --configuration Release
+      
+    - name: Run Tests
+      run: dotnet test --no-build --nologo --configuration Release --logger "trx;LogFileName=Test_Result.trx"
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: Tested-On-${{ matrix.os }}
+        path: ./Source/RandomTools.Tests/TestResults/Test_Result.trx
