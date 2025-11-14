@@ -1,34 +1,53 @@
 ﻿namespace RandomTools.Core.Options.Delay
 {
 	/// <summary>
-	/// Base class for configuring delay options.
-	/// Provides a range [Minimum, Maximum] and a <see cref="TimeUnit"/> for generating delays.
-	/// This class is generic to support fluent configuration in derived types.
+	/// Base class for configuring delay ranges expressed in a numeric interval
+	/// and a <see cref="TimeUnit"/>. This class supports a fluent configuration
+	/// pattern through its generic type parameter, allowing derived types to
+	/// return their own type from configuration methods.
+	/// <br/><br/>
+	/// A delay range is defined by a closed interval: <c>[Minimum, Maximum]</c>.
+	/// The interval may represent:
+	/// <list type="bullet">
+	/// <item><description>a normal range (e.g., 100–500 ms)</description></item>
+	/// <item><description>a fixed deterministic delay (e.g., 250–250 ms)</description></item>
+	/// <item><description>a zero-delay case (0–0), allowed for testing scenarios</description></item>
+	/// </list>
+	/// The only invalid numeric cases are:
+	/// <list type="bullet">
+	/// <item><description><c>Minimum &lt; 0</c></description></item>
+	/// <item><description><c>Maximum &lt; 0</c></description></item>
+	/// <item><description><c>Minimum &gt; Maximum</c></description></item>
+	/// </list>
 	/// </summary>
-	/// <typeparam name="TDelayOptions">The concrete type of the delay options for fluent interface.</typeparam>
+	/// <typeparam name="TDelayOptions">
+	/// The concrete delay-options type used to enable a fluent API.
+	/// </typeparam>
 	public abstract class DelayOptionsBase<TDelayOptions> : IOptionsBase where TDelayOptions : DelayOptionsBase<TDelayOptions>
 	{
 		/// <summary>
-		/// Minimum value of the delay range (inclusive).
-		/// Must be positive and less than <see cref="Maximum"/>.
+		/// Gets or sets the minimum delay value of the range.
+		/// Must be non-negative and must not exceed <see cref="Maximum"/>.
 		/// </summary>
 		internal double Minimum;
 
 		/// <summary>
-		/// Maximum value of the delay range (inclusive).
-		/// Must be positive and greater than <see cref="Minimum"/>.
+		/// Gets or sets the maximum delay value of the range.
+		/// Must be non-negative. A value of zero is allowed, including in the
+		/// special deterministic case <c>[0,0]</c>.
 		/// </summary>
 		internal double Maximum;
 
 		/// <summary>
-		/// The unit of time for the delay values (e.g., milliseconds, seconds, minutes).
+		/// Specifies the time unit (e.g., milliseconds, seconds, minutes)
+		/// applied to both <see cref="Minimum"/> and <see cref="Maximum"/>.
 		/// </summary>
 		internal TimeUnit TimeUnit;
 
 		/// <summary>
-		/// Sets the minimum value for the delay range.
+		/// Sets the minimum delay value.
 		/// </summary>
-		/// <param name="value">The minimum delay value.</param>
+		/// <param name="value">The minimum delay value. Must be ≥ 0.</param>
 		/// <returns>The current instance for fluent configuration.</returns>
 		public TDelayOptions WithMinimum(double value)
 		{
@@ -37,9 +56,9 @@
 		}
 
 		/// <summary>
-		/// Sets the maximum value for the delay range.
+		/// Sets the maximum delay value.
 		/// </summary>
-		/// <param name="value">The maximum delay value.</param>
+		/// <param name="value">The maximum delay value. Must be ≥ 0.</param>
 		/// <returns>The current instance for fluent configuration.</returns>
 		public TDelayOptions WithMaximum(double value)
 		{
@@ -48,9 +67,9 @@
 		}
 
 		/// <summary>
-		/// Sets the time unit for the delay values.
+		/// Sets the time unit used to interpret delay values.
 		/// </summary>
-		/// <param name="value">The <see cref="TimeUnit"/> to use.</param>
+		/// <param name="value">The time unit.</param>
 		/// <returns>The current instance for fluent configuration.</returns>
 		public TDelayOptions WithTimeUnit(TimeUnit value)
 		{
@@ -59,46 +78,52 @@
 		}
 
 		/// <summary>
-		/// Validates the delay options to ensure logical and positive range values.
-		/// Can be overridden in derived classes for additional validation logic.
-		/// </summary>
+		/// Validates the configured delay interval to ensure it is logically consistent.
+		/// The validation rules are intentionally minimal:
+		/// <list type="bullet">
+		/// <item><description><c>Minimum</c> must be non-negative.</description></item>
+		/// <item><description><c>Maximum</c> must be non-negative.</description></item>
+		/// <item><description><c>Minimum</c> must not exceed <c>Maximum</c>.</description></item>
+		/// </list>
+		/// This allows both normal ranges (e.g. 100–500 ms) and degenerate deterministic
+		/// ranges such as <c>[250,250]</c> or <c>[0,0]</c>.</summary>
 		/// <exception cref="OptionsValidationException">
-		/// Thrown if <see cref="Minimum"/> or <see cref="Maximum"/> are invalid.
+		/// Thrown if any of the validation rules are violated.
 		/// </exception>
 		public virtual void Validate()
 		{
 			if (Minimum < 0)
 			{
 				throw new OptionsValidationException(
-					$"Invalid {nameof(Minimum)} value: {Minimum}. It must be a non-negative integer.");
+					$"{nameof(Minimum)} must be non-negative. Actual: {Minimum}.");
 			}
 
-			if (Maximum <= 0)
+			if (Maximum < 0)
 			{
 				throw new OptionsValidationException(
-					$"Invalid {nameof(Maximum)} value: {Maximum}. It must be a positive integer.");
+					$"{nameof(Maximum)} must be non-negative. Actual: {Maximum}.");
 			}
 
-			if (Minimum >= Maximum)
+			if (Minimum > Maximum)
 			{
 				throw new OptionsValidationException(
-					$"Invalid range: {nameof(Minimum)} ({Minimum}) must be less than {nameof(Maximum)} ({Maximum}).");
+					$"{nameof(Minimum)} ({Minimum}) cannot be greater than {nameof(Maximum)} ({Maximum}).");
 			}
 		}
 
+		/// <inheritdoc />
 		public override bool Equals(object? obj)
 		{
-			if (obj is null || obj.GetType() != GetType())
+			if (obj is not TDelayOptions other)
 				return false;
 
-			var other = (TDelayOptions)obj;
-
-			// compare all fields that define equality
 			return Minimum == other.Minimum &&
 				   Maximum == other.Maximum &&
 				   TimeUnit == other.TimeUnit;
 		}
 
-		public override int GetHashCode() => HashCode.Combine(Minimum, Maximum, TimeUnit);
+		/// <inheritdoc />
+		public override int GetHashCode() =>
+			HashCode.Combine(Minimum, Maximum, TimeUnit);
 	}
 }

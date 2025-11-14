@@ -3,27 +3,29 @@
 namespace RandomTools.Core.Random.Delay
 {
 	/// <summary>
-	/// Generates a delay using a uniform distribution within the specified range.
+	/// Produces delays based on a uniform random distribution across a configured range.
 	/// </summary>
 	public sealed class UniformDelay : RandomDelay<DelayOptions.Uniform>
 	{
 		/// <summary>
-		/// Initializes a new instance of <see cref="UniformDelay"/> with the specified options.
+		/// Initializes a new instance of <see cref="UniformDelay"/> using the provided options.
 		/// </summary>
-		/// <param name="options">The configuration options for the delay.</param>
+		/// <param name="options">The delay configuration, including range and time unit.</param>
 		public UniformDelay(DelayOptions.Uniform options) : base(options) { }
 
 		/// <summary>
-		/// Returns the next random delay as a <see cref="TimeSpan"/>.
-		/// The value is selected uniformly from the inclusive range [Minimum, Maximum].
+		/// Generates the next delay value as a <see cref="TimeSpan"/>.
+		/// The delay is drawn uniformly from the interval [Minimum, Maximum), meaning
+		/// the minimum value is inclusive and the maximum value is excluded.
+		/// Degenerate intervals such as [x, x] result in a deterministic delay.
 		/// </summary>
 		public override TimeSpan Next()
 		{
-			// Pick a random value in [Minimum, Maximum] inclusive
-			double delayValue = CoreTools.NextDouble(Options.Minimum, Options.Maximum);
+			// Select a random double within the configured range.
+			double value = CoreTools.NextDouble(Options.Minimum, Options.Maximum);
 
-			// Convert to TimeSpan using the configured unit
-			return CoreTools.ToTimeSpan(delayValue, Options.TimeUnit);
+			// Convert the numeric value to a TimeSpan using the configured unit.
+			return CoreTools.ToTimeSpan(value, Options.TimeUnit);
 		}
 	}
 }

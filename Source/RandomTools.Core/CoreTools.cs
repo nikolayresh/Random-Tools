@@ -6,7 +6,7 @@ namespace RandomTools.Core
 	/// Provides core utilities for cryptographically secure random number generation
 	/// and time conversion operations.
 	/// </summary>
-	public static class CoreTools
+	internal static class CoreTools
 	{
 		// Mask to isolate the lower 52 bits (mantissa/fraction) of a double.
 		// Using all 52 bits gives exactly 2^52 distinct values,

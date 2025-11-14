@@ -9,7 +9,7 @@
 		/// Represents a uniform delay distribution where all values in the range [Minimum, Maximum] 
 		/// are equally likely.
 		/// </summary>
-		public class Uniform : DelayOptionsBase<Uniform>
+		public sealed class Uniform : DelayOptionsBase<Uniform>
 		{
 			// Currently no additional fields; inherits Minimum, Maximum, and TimeUnit from DelayOptionsBase
 		}
