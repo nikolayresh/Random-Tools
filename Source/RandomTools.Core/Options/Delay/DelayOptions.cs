@@ -3,45 +3,47 @@
 namespace RandomTools.Core.Options.Delay
 {
 	/// <summary>
-	/// Container for all delay option types.
+	/// Contains configuration types for different delay-distribution strategies.
 	/// </summary>
 	public static class DelayOptions
 	{
 		/// <summary>
-		/// Represents a uniform delay distribution where all values in the range [Minimum, Maximum] 
-		/// are equally likely.
+		/// Configuration for a uniform delay distribution.
+		/// Every value in the interval [Minimum, Maximum] is equally probable.
 		/// </summary>
 		public sealed class Uniform : DelayOptionsBase<Uniform>
 		{
-			// Currently no additional fields; inherits Minimum, Maximum, and TimeUnit from DelayOptionsBase
+			// No additional configuration for now.
+			// Inherits Minimum, Maximum, and TimeUnit from DelayOptionsBase.
 		}
 
 		/// <summary>
-		/// Represents a normal (Gaussian) delay distribution.
-		/// Users can optionally specify Mean and StandardDeviation.
-		/// If not specified, defaults will be used:
-		/// - Mean = midpoint of [Minimum, Maximum]
-		/// - StandardDeviation = 1/6 of the range, so ~99.7% values fall within [Minimum, Maximum]
+		/// Configuration for a normal (Gaussian) delay distribution.
+		/// 
+		/// Optional parameters:
+		/// - Mean: if omitted, defaults to the midpoint of [Minimum, Maximum].
+		/// - StandardDeviation: if omitted, defaults to one-sixth of the range,
+		///   resulting in ~99.7% of values falling within the bounds.
 		/// </summary>
 		public sealed class Normal : DelayOptionsBase<Normal>
 		{
 			/// <summary>
-			/// Optional mean (center) of the normal distribution.
-			/// If null, the midpoint of [Minimum, Maximum] is used.
+			/// Optional mean (μ) of the normal distribution.
+			/// If zero, the midpoint of the delay range will be used.
 			/// </summary>
 			internal double Mean;
 
-			/// Optional standard deviation (spread) of the normal distribution.
-			/// If null, defaults to 1/6 of the range [Minimum, Maximum].
-			/// Must be positive if specified.
+			/// <summary>
+			/// Optional standard deviation (σ).
+			/// If zero, a default value of (Maximum − Minimum) / 6 is used.
+			/// Must be strictly positive when explicitly set.
 			/// </summary>
 			internal double StandardDeviation;
 
 			/// <summary>
-			/// Sets the mean (center) of the normal distribution.
+			/// Sets the mean (μ) of the normal distribution.
 			/// </summary>
-			/// <param name="value">Mean value in the same units as Minimum/Maximum.</param>
-			/// <returns>The current instance for fluent configuration.</returns>
+			/// <param name="value">Mean value in the same units as Minimum and Maximum.</param>
 			public Normal WithMean(double value)
 			{
 				Mean = value;
@@ -49,20 +51,23 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			/// <summary>
-			/// Sets the standard deviation (spread) of the normal distribution.
+			/// Sets the standard deviation (σ) of the normal distribution.
 			/// </summary>
-			/// <param name="value">Standard deviation in the same units as Minimum/Maximum. Must be positive.</param>
-			/// <returns>The current instance for fluent configuration.</returns>
-			public Normal WithStandardDeviation(double value) 
+			/// <param name="value">Standard deviation. Must be strictly positive.</param>
+			public Normal WithStandardDeviation(double value)
 			{
-				StandardDeviation = value; 
-				return this; 
+				StandardDeviation = value;
+				return this;
 			}
 
 			/// <summary>
-			/// Validates the options to ensure:
-			/// - Mean (if specified) is within [Minimum, Maximum] (flexible, can equal the boundaries)
-			/// - StandardDeviation (if specified) is positive
+			/// Validates the configuration:
+			/// - Ensures Minimum and Maximum are valid (base validation).
+			/// - Ensures StandardDeviation, when explicitly set, is > 0.
+			/// 
+			/// Notes:
+			/// Mean is not required to lie within the range because the distribution
+			/// is later truncated (clamped) by the normal generator.
 			/// </summary>
 			public override void Validate()
 			{
@@ -76,21 +81,27 @@ namespace RandomTools.Core.Options.Delay
 			}
 		}
 
+		/// <summary>
+		/// Configuration for an exponential delay distribution.
+		/// 
+		/// Optional parameter:
+		/// - Lambda (λ): the rate parameter.
+		///   If not specified, λ is computed such that the mean (1 / λ)
+		///   equals the midpoint of the interval [Minimum, Maximum].
+		/// </summary>
 		public sealed class Exponential : DelayOptionsBase<Exponential>
 		{
 			/// <summary>
-			/// Optional rate parameter λ of the exponential distribution.
-			/// Must be positive if specified.
-			/// If null, a default λ is computed so that the mean is equal to the midpoint of [Minimum, Maximum].
-			/// Mean = 1 / λ.
+			/// Optional rate parameter λ.
+			/// Must be strictly positive when explicitly set.
+			/// If null, λ is derived automatically from the midpoint of the range.
 			/// </summary>
 			internal double? Lambda;
 
 			/// <summary>
-			/// Sets the rate parameter λ (lambda) for the exponential distribution.
+			/// Sets the exponential rate parameter λ.
 			/// </summary>
-			/// <param name="value">Rate parameter. Must be positive.</param>
-			/// <returns>The current instance for fluent configuration.</returns>
+			/// <param name="value">Rate parameter. Must be > 0.</param>
 			public Exponential WithLambda(double value)
 			{
 				Lambda = value;
@@ -98,19 +109,17 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			/// <summary>
-			/// Computes the effective rate parameter λ to be used.
-			/// If the user specified λ explicitly, it is returned.
-			/// Otherwise, a default value corresponding to the midpoint mean is used.
+			/// Resolves the effective λ to use:
+			/// - Returns explicitly set λ, or
+			/// - Computes a default λ based on mean = midpoint, λ = 1 / mean.
 			/// </summary>
 			internal double GetEffectiveLambda()
 			{
 				if (Lambda.HasValue)
 					return Lambda.Value;
 
-				// Default: mean = midpoint => lambda = 1 / mean
 				double mean = (Minimum + Maximum) / 2.0;
 
-				// Safety: avoid division by zero if the range is degenerate
 				if (mean <= 0)
 					throw new OptionsValidationException(this,
 						"Cannot compute default lambda: midpoint mean is zero or negative.");
@@ -119,9 +128,9 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			/// <summary>
-			/// Validates:
-			/// - Lambda (if specified) must be positive.
-			/// - Minimum/Maximum are validated by base class.
+			/// Validates configuration:
+			/// - Minimum/Maximum validated by the base class.
+			/// - Lambda must be > 0 when explicitly set.
 			/// </summary>
 			public override void Validate()
 			{
@@ -133,9 +142,9 @@ namespace RandomTools.Core.Options.Delay
 						$"Lambda ({Lambda.Value}) must be positive.");
 				}
 
-				// No further constraints: exponential is unbounded above by definition
+				// Note: Exponential distribution is unbounded above,
+				// so no constraints related to [Minimum, Maximum].
 			}
 		}
-
 	}
 }
