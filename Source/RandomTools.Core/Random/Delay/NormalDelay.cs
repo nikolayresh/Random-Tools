@@ -25,14 +25,14 @@ namespace RandomTools.Core.Random.Delay
 				double zMax = (range.Max - mean) / stdDev;
 
 				// Total mass inside the interval
-				double probability = CumulativeDistributionFunction(zMax) - CumulativeDistributionFunction(zMin);
+				double probability = CDF(zMax) - CDF(zMin);
 				return probability > 0.0;
 			}
 
 			/// <summary>
 			/// Standard Normal Cumulative Distribution Function (CDF).
 			/// </summary>
-			public static double CumulativeDistributionFunction(double z)
+			public static double CDF(double z)
 			{
 				const double a1 = 0.254829592;
 				const double a2 = -0.284496736;
@@ -57,7 +57,7 @@ namespace RandomTools.Core.Random.Delay
 		/// The maximum number of rejection attempts allowed when sampling
 		/// a value inside the allowed range.
 		/// </summary>
-		private const int MaxRejectionAttempts = 5_000_000;
+		private const int MaxResampleAttempts = 5_000_000;
 
 #pragma warning disable IDE0290 // Use primary constructor
 		public NormalDelay(DelayOptions.Normal options) : base(options) { }
@@ -95,12 +95,13 @@ namespace RandomTools.Core.Random.Delay
 					$"inside the range [{Options.Minimum}, {Options.Maximum}]. Sampling is impossible.");
 			}
 
-			int attempts = MaxRejectionAttempts;
+			int attempts = MaxResampleAttempts;
 
 			while (true)
 			{
 				double value = NextGaussianValue(mean, stdDev);
 
+				// the generated value did not hit the provided range
 				if (value < Options.Minimum || value > Options.Maximum)
 				{
 					if (attempts-- != 0)
@@ -108,7 +109,7 @@ namespace RandomTools.Core.Random.Delay
 
 					// Extremely improbable, but cannot allow an infinite loop
 					throw new NextGeneratorException(Options,
-						$"Failed to generate a value within [{Options.Minimum}, {Options.Maximum}] after {MaxRejectionAttempts} attempts. " +
+						$"Failed to generate a value within [{Options.Minimum}, {Options.Maximum}] after {MaxResampleAttempts} attempts. " +
 						"A different distribution configuration may be required.");
 				}
 
