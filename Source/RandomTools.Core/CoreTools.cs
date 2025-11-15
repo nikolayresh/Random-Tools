@@ -19,7 +19,52 @@ namespace RandomTools.Core
 		// double in the [1.0, 2.0) range. Subtracting 1.0
 		// afterwards maps it to [0.0, 1.0) without bias.
 		private const ulong ExponentMask = 0x3FF0_0000_0000_0000UL;
-		
+
+		public static double ExpectedRetries(double mean, double stdDev, double min, double max)
+		{
+			if (stdDev <= 0)
+				throw new ArgumentOutOfRangeException(nameof(stdDev), "Standard deviation must be positive.");
+
+			if (min > max)
+				throw new ArgumentOutOfRangeException(nameof(min), "Min must be ≤ max.");
+
+			// Convert bounds to Z-scores
+			double zMin = (min - mean) / stdDev;
+			double zMax = (max - mean) / stdDev;
+
+			// Probability mass in [min, max]
+			double p = NormalCdf(zMax) - NormalCdf(zMin);
+
+			if (p <= 0)
+				return double.PositiveInfinity; // impossible to hit the range
+
+			// Expected retries = 1/p
+			return 1.0 / p;
+		}
+
+		private static double NormalCdf(double z)
+		{
+			// constants
+			const double a1 = 0.254829592;
+			const double a2 = -0.284496736;
+			const double a3 = 1.421413741;
+			const double a4 = -1.453152027;
+			const double a5 = 1.061405429;
+			const double p = 0.3275911;
+
+			// Save the sign of z
+			double sign = 1;
+			if (z < 0)
+				sign = -1;
+			z = Math.Abs(z) / Math.Sqrt(2.0);
+
+			// A&S formula for erf
+			double t = 1.0 / (1.0 + p * z);
+			double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-z * z);
+
+			return 0.5 * (1.0 + sign * y);
+		}
+
 		/// <summary>
 		/// Converts a numeric value to a <see cref="TimeSpan"/> according to a specified <see cref="TimeUnit"/>.
 		/// </summary>
@@ -45,7 +90,6 @@ namespace RandomTools.Core
 		/// <returns>A random byte in the range [0, 255].</returns>
 		public static byte NextByte()
 		{
-			// Span is still the modern, efficient way to do this.
 			Span<byte> buffer = stackalloc byte[1];
 			RandomNumberGenerator.Fill(buffer);
 

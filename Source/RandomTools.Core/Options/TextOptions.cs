@@ -1,4 +1,6 @@
-﻿namespace RandomTools.Core.Options
+﻿using RandomTools.Core.Exceptions;
+
+namespace RandomTools.Core.Options
 {
 	/// <summary>
 	/// Represents options for configuring random text generation.
@@ -63,14 +65,14 @@
 		{
 			if (!Digits && !LowerLetters && !UpperLetters)
 			{
-				throw new OptionsValidationException(
+				throw new OptionsValidationException(this,
 					"At least one character set must be enabled: digits, lowercase letters, or uppercase letters");
 
 			}
 
 			if (Length <= 0)
 			{
-				throw new OptionsValidationException(
+				throw new OptionsValidationException(this,
 				   $"Invalid length: {Length}. Length must be greater than zero.");
 			}
 
@@ -79,7 +81,7 @@
 				var maxLength = (Digits ? 10 : 0) + (LowerLetters ? 26 : 0) + (UpperLetters ? 26 : 0);
 				if (Length > maxLength)
 				{
-					throw new OptionsValidationException(
+					throw new OptionsValidationException(this,
 						$"Invalid configuration: requested length {Length} exceeds maximum unique characters {maxLength} based on selected sets");
 				}
 			}

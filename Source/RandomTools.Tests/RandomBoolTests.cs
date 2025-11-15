@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using RandomTools.Core;
+using RandomTools.Core.Exceptions;
 using RandomTools.Core.Options;
 using RandomTools.Core.Random;
 

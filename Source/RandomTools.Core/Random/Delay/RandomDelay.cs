@@ -17,27 +17,31 @@ namespace RandomTools.Core.Random.Delay
 	/// The type of options that control the behavior of the random delay.
 	/// Must inherit from <see cref="DelayOptionsBase{TOptions}"/>.
 	/// </typeparam>
-	public abstract class DelayBase<TOptions> : RandomBase<TimeSpan, TOptions> where TOptions : DelayOptionsBase<TOptions>
+	public abstract class RandomDelay<TOptions> : RandomBase<TimeSpan, TOptions> where TOptions : DelayOptionsBase<TOptions>
 	{
 		/// <summary>
-		/// Initializes a new instance of <see cref="DelayBase{TOptions}"/> with the specified delay options.
+		/// Initializes a new instance of <see cref="RandomDelay{TOptions}"/> with the specified delay options.
 		/// </summary>
 		/// <param name="options">
 		/// The configuration options that define how the random delay is calculated
 		/// (e.g., minimum and maximum delay, distribution type, etc.).
 		/// </param>
-		protected DelayBase(TOptions options) : base(options)
+#pragma warning disable IDE0290 // Use primary constructor
+		protected RandomDelay(TOptions options) : base(options)
+#pragma warning restore IDE0290 // Use primary constructor
 		{
 			// The base class RandomBase handles storing options and providing the Next() method.
 		}
 
-		public void Wait()
+		public TimeSpan Wait()
 		{
 			TimeSpan next = Next();
 			if (next <= TimeSpan.Zero)
-				return;
+				return next;
 
 			Thread.Sleep(next);
+
+			return next;
 		}
 
 		/// <summary>
@@ -59,14 +63,16 @@ namespace RandomTools.Core.Random.Delay
 		/// A <see cref="Task"/> that completes after the computed random delay, or is canceled if
 		/// the <paramref name="cancellationToken"/> is triggered.
 		/// </returns>
-		public async Task WaitAsync(CancellationToken cancellationToken = default)
+		public async Task<TimeSpan> WaitAsync(CancellationToken cancellationToken = default)
 		{
 			TimeSpan next = Next();
 			if (next <= TimeSpan.Zero)
-				return;
+				return next;
 
 			// Await Task.Delay for the duration returned by Next(), supporting cancellation
 			await Task.Delay(next, cancellationToken).ConfigureAwait(false);
+
+			return next;
 		}
 	}
 }

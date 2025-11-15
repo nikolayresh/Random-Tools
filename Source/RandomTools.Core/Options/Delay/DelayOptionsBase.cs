@@ -1,4 +1,6 @@
-﻿namespace RandomTools.Core.Options.Delay
+﻿using RandomTools.Core.Exceptions;
+
+namespace RandomTools.Core.Options.Delay
 {
 	/// <summary>
 	/// Base class for configuring delay ranges expressed in a numeric interval
@@ -92,21 +94,9 @@
 		/// </exception>
 		public virtual void Validate()
 		{
-			if (Minimum < 0)
-			{
-				throw new OptionsValidationException(
-					$"{nameof(Minimum)} must be non-negative. Actual: {Minimum}.");
-			}
-
-			if (Maximum < 0)
-			{
-				throw new OptionsValidationException(
-					$"{nameof(Maximum)} must be non-negative. Actual: {Maximum}.");
-			}
-
 			if (Minimum > Maximum)
 			{
-				throw new OptionsValidationException(
+				throw new OptionsValidationException(this,
 					$"{nameof(Minimum)} ({Minimum}) cannot be greater than {nameof(Maximum)} ({Maximum}).");
 			}
 		}

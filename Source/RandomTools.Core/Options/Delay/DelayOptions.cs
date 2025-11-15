@@ -1,4 +1,6 @@
-﻿namespace RandomTools.Core.Options.Delay
+﻿using RandomTools.Core.Exceptions;
+
+namespace RandomTools.Core.Options.Delay
 {
 	/// <summary>
 	/// Container for all delay option types.
@@ -27,13 +29,13 @@
 			/// Optional mean (center) of the normal distribution.
 			/// If null, the midpoint of [Minimum, Maximum] is used.
 			/// </summary>
-			internal double? Mean;
+			internal double Mean;
 
 			/// Optional standard deviation (spread) of the normal distribution.
 			/// If null, defaults to 1/6 of the range [Minimum, Maximum].
 			/// Must be positive if specified.
 			/// </summary>
-			internal double? StandardDeviation;
+			internal double StandardDeviation;
 
 			/// <summary>
 			/// Sets the mean (center) of the normal distribution.
@@ -57,17 +59,6 @@
 				return this; 
 			}
 
-			internal double GetEffectiveMean()
-			{
-				if (Mean.HasValue)
-				{
-					return Mean.Value;
-				}
-
-				double value = (Minimum + Maximum) / 2.0;
-				return value;
-			}
-
 			/// <summary>
 			/// Validates the options to ensure:
 			/// - Mean (if specified) is within [Minimum, Maximum] (flexible, can equal the boundaries)
@@ -77,16 +68,10 @@
 			{
 				base.Validate();
 
-				if (Mean.HasValue && (Mean.Value < Minimum || Mean.Value > Maximum))
+				if (StandardDeviation <= 0.0)
 				{
-					throw new OptionsValidationException(
-						$"Mean ({Mean.Value}) must be within the range [{Minimum} - {Maximum}].");
-				}
-
-				if (StandardDeviation.HasValue && StandardDeviation.Value <= 0)
-				{
-					throw new OptionsValidationException(
-						$"StandardDeviation ({StandardDeviation.Value}) must be positive.");
+					throw new OptionsValidationException(this,
+						$"StandardDeviation ({StandardDeviation}) must be positive.");
 				}
 			}
 		}
@@ -127,7 +112,7 @@
 
 				// Safety: avoid division by zero if the range is degenerate
 				if (mean <= 0)
-					throw new OptionsValidationException(
+					throw new OptionsValidationException(this,
 						"Cannot compute default lambda: midpoint mean is zero or negative.");
 
 				return 1.0 / mean;
@@ -144,7 +129,7 @@
 
 				if (Lambda.HasValue && Lambda.Value <= 0)
 				{
-					throw new OptionsValidationException(
+					throw new OptionsValidationException(this,
 						$"Lambda ({Lambda.Value}) must be positive.");
 				}
 

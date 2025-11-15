@@ -1,4 +1,6 @@
-﻿namespace RandomTools.Core.Options
+﻿using RandomTools.Core.Exceptions;
+
+namespace RandomTools.Core.Options
 {
 	/// <summary>
 	/// Represents configuration options for generating random boolean values.
@@ -74,13 +76,13 @@
 
 			if (Bias <= 0.0)
 			{
-				throw new OptionsValidationException(
+				throw new OptionsValidationException(this,
 					$"Bias must be greater than 0.0 to allow 'true' values to be generated. Actual value: {Bias}");
 			}
 
 			if (Bias >= 1.0)
 			{
-				throw new OptionsValidationException(
+				throw new OptionsValidationException(this,
 					$"Bias must be less than 1.0 to allow 'false' values to be generated. Actual value: {Bias}");
 			}
 		}

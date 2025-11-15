@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace RandomTools.Tests
+﻿namespace RandomTools.Tests
 {
 	/// <summary>
 	/// Provides statistical utility algorithms for test verification.
@@ -55,21 +51,25 @@ namespace RandomTools.Tests
 		{
 			ArgumentNullException.ThrowIfNull(observed);
 
-			var list = observed as IList<int> ?? observed.ToList();
+			var theList = observed as IList<int> ?? [.. observed];
 
-			if (list.Count == 0)
-				throw new ArgumentException("Observed collection cannot be empty.", nameof(observed));
-
-			double expected = (double)trials / list.Count;
-			double chi = 0.0;
-
-			for (int i = 0; i < list.Count; i++)
+			if (theList.Count == 0)
 			{
-				double diff = list[i] - expected;
-				chi += diff * diff / expected;
+				throw new ArgumentException(
+					"Observed collection cannot be empty.", 
+					nameof(observed));
 			}
 
-			return chi;
+			double expected = (double)trials / theList.Count;
+			double chiSquare = 0d;
+
+			for (int i = 0; i < theList.Count; i++)
+			{
+				double diff = theList[i] - expected;
+				chiSquare += diff * diff / expected;
+			}
+
+			return chiSquare;
 		}
 	}
 }
