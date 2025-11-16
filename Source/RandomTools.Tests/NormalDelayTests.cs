@@ -27,11 +27,8 @@ namespace RandomTools.Tests
 		public void TestOne()
 		{
 			var options = new DelayOptions.Normal()
-				.WithMinimum(20)
-				.WithMaximum(50)
-				.WithMean(70)
-				.WithStandardDeviation(60)
-				.WithTimeUnit(TimeUnit.Second);
+				.WithTimeUnit(TimeUnit.Second)
+				.WithAutoFit(30, 70);
 
 			var random = new NormalDelay(options);
 			List<TimeSpan> trials = [];

@@ -20,10 +20,14 @@
 		public static double GetRangeHitRate(double mean, double stdDev, (double Min, double Max) range)
 		{
 			if (range.Min >= range.Max)
-				return Probability.Never;
+				return Probability.Impossible;
 
 			if (stdDev <= double.Epsilon)
-				return (range.Min <= mean && mean <= range.Max) ? Probability.One : Probability.Never;
+			{
+				return (range.Min <= mean && mean <= range.Max)
+					? Probability.Certain
+					: Probability.Impossible;
+			}
 
 			double zMin = (range.Min - mean) / stdDev;
 			double zMax = (range.Max - mean) / stdDev;
