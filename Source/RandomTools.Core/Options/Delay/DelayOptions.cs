@@ -2,48 +2,38 @@
 
 namespace RandomTools.Core.Options.Delay
 {
-	/// <summary>
-	/// Contains configuration types for different delay-distribution strategies.
-	/// </summary>
-	public static class DelayOptions
+	public static partial class DelayOptions
 	{
-		/// <summary>
-		/// Configuration for a uniform delay distribution.
-		/// Every value in the interval [Minimum, Maximum] is equally probable.
-		/// </summary>
 		public sealed class Uniform : DelayOptionsBase<Uniform>
 		{
-			// No additional configuration for now.
-			// Inherits Minimum, Maximum, and TimeUnit from DelayOptionsBase.
+			public Uniform() { }
 		}
 
 		/// <summary>
-		/// Configuration for a normal (Gaussian) delay distribution.
-		/// 
-		/// Optional parameters:
-		/// - Mean: if omitted, defaults to the midpoint of [Minimum, Maximum].
-		/// - StandardDeviation: if omitted, defaults to one-sixth of the range,
-		///   resulting in ~99.7% of values falling within the bounds.
+		/// Configuration options for a normal (Gaussian) delay distribution.
+		/// <para>
+		/// Mean (μ) and StandardDeviation (σ) describe the underlying normal distribution.
+		/// Generated delays are truncated to the range [Minimum, Maximum].
+		/// </para>
 		/// </summary>
 		public sealed class Normal : DelayOptionsBase<Normal>
 		{
 			/// <summary>
-			/// Optional mean (μ) of the normal distribution.
-			/// If zero, the midpoint of the delay range will be used.
+			/// Mean (μ) of the underlying normal distribution.
+			/// This value is NOT clamped to the allowed output range and may lie outside it,
+			/// because the actual generator performs truncation at runtime.
 			/// </summary>
 			internal double Mean;
 
 			/// <summary>
-			/// Optional standard deviation (σ).
-			/// If zero, a default value of (Maximum − Minimum) / 6 is used.
-			/// Must be strictly positive when explicitly set.
+			/// Standard deviation (σ) of the underlying normal distribution.
+			/// Must be strictly positive.
 			/// </summary>
 			internal double StandardDeviation;
 
 			/// <summary>
-			/// Sets the mean (μ) of the normal distribution.
+			/// Sets the mean (μ) of the distribution.
 			/// </summary>
-			/// <param name="value">Mean value in the same units as Minimum and Maximum.</param>
 			public Normal WithMean(double value)
 			{
 				Mean = value;
@@ -51,9 +41,9 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			/// <summary>
-			/// Sets the standard deviation (σ) of the normal distribution.
+			/// Sets the standard deviation (σ).
+			/// Value must be greater than zero.
 			/// </summary>
-			/// <param name="value">Standard deviation. Must be strictly positive.</param>
 			public Normal WithStandardDeviation(double value)
 			{
 				StandardDeviation = value;
@@ -61,24 +51,74 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			/// <summary>
-			/// Validates the configuration:
-			/// - Ensures Minimum and Maximum are valid (base validation).
-			/// - Ensures StandardDeviation, when explicitly set, is > 0.
-			/// 
-			/// Notes:
-			/// Mean is not required to lie within the range because the distribution
-			/// is later truncated (clamped) by the normal generator.
+			/// Sets the minimum and maximum bounds and automatically derives
+			/// a reasonable mean and standard deviation:
+			/// <para>
+			/// • Mean = midpoint of the range  
+			/// • σ = (max − min) / 6, meaning ±3σ spans the full interval  
+			///   (~99.7% of the distribution under the 6σ rule)
+			/// </para>
+			/// </summary>
+			public Normal WithAutoFit(double min, double max)
+			{
+				WithMinimum(min);
+				WithMaximum(max);
+
+				Mean = (min + max) / 2.0;
+
+				// 6σ rule: ±3σ covers the interval [min, max]
+				StandardDeviation = (max - min) / 6.0;
+
+				return this;
+			}
+
+			/// <summary>
+			/// Validates configuration:
+			/// <para>
+			/// • Base class ensures Minimum &lt; Maximum and correct TimeUnit  
+			/// • σ must be strictly positive  
+			/// • The distribution must have a non-negligible probability of producing
+			///   values inside the configured range
+			/// </para>
 			/// </summary>
 			public override void Validate()
 			{
 				base.Validate();
 
-				if (StandardDeviation <= 0.0)
+				if ((Maximum - Minimum) <= double.Epsilon)
 				{
 					throw new OptionsValidationException(this,
-						$"StandardDeviation ({StandardDeviation}) must be positive.");
+						"Range is too small for a normal distribution.");
+				}
+
+				if (StandardDeviation <= double.Epsilon)
+				{
+					throw new OptionsValidationException(this,
+						$"Standard deviation ({StandardDeviation}) must be positive.");
+				}
+
+				// Check that truncation is mathematically possible.
+				double hitRate = GaussianTools.GetRangeHitRate(Mean, StandardDeviation, (Minimum, Maximum));
+
+				if (hitRate <= double.Epsilon)
+				{
+					throw new OptionsValidationException(this,
+						$"Normal distribution will almost never produce a value within [{Minimum}, {Maximum}].");
 				}
 			}
+
+			public override bool Equals(object? obj)
+			{
+				if (!base.Equals(obj))
+					return false;
+
+				return obj is Normal other &&
+					   Mean == other.Mean &&
+					   StandardDeviation == other.StandardDeviation;
+			}
+
+			public override int GetHashCode() =>
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Mean, StandardDeviation);
 		}
 
 		/// <summary>
@@ -148,3 +188,4 @@ namespace RandomTools.Core.Options.Delay
 		}
 	}
 }
+
