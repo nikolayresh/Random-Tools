@@ -65,8 +65,6 @@ namespace RandomTools.Core.Options.Delay
 				WithMaximum(max);
 
 				Mean = (min + max) / 2.0;
-
-				// 6σ rule: ±3σ covers the interval [min, max]
 				StandardDeviation = (max - min) / 6.0;
 
 				return this;
@@ -97,7 +95,7 @@ namespace RandomTools.Core.Options.Delay
 						$"Standard deviation ({StandardDeviation}) must be positive.");
 				}
 
-				// Check that truncation is mathematically possible.
+				// Check if mathematically possible.
 				double hitRate = GaussianTools.GetRangeHitRate(Mean, StandardDeviation, (Minimum, Maximum));
 
 				if (hitRate <= double.Epsilon)
@@ -112,9 +110,12 @@ namespace RandomTools.Core.Options.Delay
 				if (!base.Equals(obj))
 					return false;
 
-				return obj is Normal other &&
-					   Mean == other.Mean &&
-					   StandardDeviation == other.StandardDeviation;
+				if (obj is not Normal other)
+					return false;
+
+				return 
+					Mean == other.Mean &&
+					StandardDeviation == other.StandardDeviation;
 			}
 
 			public override int GetHashCode() =>

@@ -35,6 +35,7 @@ namespace RandomTools.Core.Random.Delay
 
 			// Cached Box–Muller value (only the current operation will use it).
 			double? cache = null;
+			int nextTry = attempts;
 
 			while (true)
 			{
@@ -43,12 +44,12 @@ namespace RandomTools.Core.Random.Delay
 				if (value < Options.Minimum || value > Options.Maximum)
 				{
 					// Reject and try again.
-					if (attempts-- != 0)
+					if (nextTry-- != 0)
 						continue;
 
 					throw new NextGeneratorException(Options,
 						$"Failed to generate a normal-distribution value inside the allowed range " +
-						$"[{Options.Minimum}, {Options.Maximum}] after {GaussianTools.GetHitAttempts(hitRate):N0} attempts."
+						$"[{Options.Minimum}, {Options.Maximum}] after {attempts:N0} attempts."
 					);
 				}
 
