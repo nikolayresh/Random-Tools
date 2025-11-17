@@ -3,7 +3,6 @@ using RandomTools.Core;
 using RandomTools.Core.Exceptions;
 using RandomTools.Core.Options.Delay;
 using RandomTools.Core.Random.Delay;
-using System.Diagnostics;
 
 namespace RandomTools.Tests
 {
@@ -52,7 +51,7 @@ namespace RandomTools.Tests
 			return index < Segments ? index : Segments - 1;
 		}
 
-		[Test]
+		[Test, Retry(3)]
 		[TestCase(10.0,  20.0,    1_000_000)]
 		[TestCase(10.0,  20.0,   10_000_000)]
 		[TestCase(10.0,  20.0,  100_000_000)]

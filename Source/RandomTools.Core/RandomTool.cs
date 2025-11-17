@@ -3,7 +3,6 @@ using RandomTools.Core.Options.Delay;
 using RandomTools.Core.Random;
 using RandomTools.Core.Random.Delay;
 using System.Collections.Concurrent;
-using System.Net.Http.Headers;
 
 namespace RandomTools.Core
 {
