@@ -1,4 +1,5 @@
 ﻿using RandomTools.Core.Options.Delay;
+using RandomTools.Core.Random.Delay;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,14 +14,16 @@ namespace RandomTools.Tests.Options
 		[Test]
 		public void TestOne()
 		{
-			double p = double.NaN;
-
-			bool isTrue = double.IsFinite(p);
-
 			var options = new DelayOptions.Normal()
-				.WithAutoFit(40, 60);
+				.WithMean(50)
+				.WithStandardDeviation(10)
+				.WithMinimum(60)
+				.WithMaximum(65);
 
 			options.Validate();
+
+			var r = new NormalDelay(options);
+			r.Next();
 		}
 	}
 }

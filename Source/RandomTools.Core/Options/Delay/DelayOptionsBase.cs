@@ -1,6 +1,7 @@
 ﻿using RandomTools.Core.Exceptions;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace RandomTools.Core.Options.Delay
 {
@@ -90,17 +91,8 @@ namespace RandomTools.Core.Options.Delay
 		/// </exception>
 		public virtual void Validate()
 		{
-			if (!double.IsFinite(Minimum))
-			{
-				throw new OptionsValidationException(this,
-					$"{nameof(Minimum)} ({Minimum}) must be a finite numeric value.");
-			}
-
-			if (!double.IsFinite(Maximum))
-			{
-				throw new OptionsValidationException(this,
-					$"{nameof(Maximum)} ({Maximum}) must be a finite numeric value.");
-			}
+			EnsureFinite(Minimum);
+			EnsureFinite(Maximum);
 
 			if (Minimum > Maximum)
 			{
@@ -137,5 +129,14 @@ namespace RandomTools.Core.Options.Delay
 		/// <inheritdoc />
 		public override int GetHashCode() =>
 			HashCode.Combine(Minimum, Maximum, TimeUnit);
+
+		protected void EnsureFinite(double value, [CallerArgumentExpression(nameof(value))] string? name = null)
+		{
+			if (!double.IsFinite(value))
+			{
+				throw new OptionsValidationException(this,
+					$"{name} ({value}) must be a finite numeric value.");
+			}
+		}
 	}
 }

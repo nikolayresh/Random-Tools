@@ -31,7 +31,7 @@ namespace RandomTools.Core.Random.Delay
 
 			// Probability that a normal sample naturally falls inside [Min, Max].
 			double hitRate = GaussianTools.GetRangeHitRate(mean, stdDev, (Options.Minimum, Options.Maximum));
-			int attempts = 2 * GaussianTools.GetHitAttempts(hitRate);
+			int attempts = GaussianTools.GetHitAttempts(hitRate);
 
 			// Cached Box–Muller value (only the current operation will use it).
 			double? cache = null;

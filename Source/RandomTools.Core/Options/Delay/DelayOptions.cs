@@ -19,6 +19,12 @@ namespace RandomTools.Core.Options.Delay
 		public sealed class Normal : DelayOptionsBase<Normal>
 		{
 			/// <summary>
+			/// Maximum allowed shift of the entire range relative to the mean, expressed in standard deviations (σ).  
+			/// Ensures that the distribution can generate values efficiently without excessive rejection sampling.
+			/// </summary>
+			private const int MaxZShift = 3;
+
+			/// <summary>
 			/// Mean (μ) of the underlying normal distribution.
 			/// This value is NOT clamped to the allowed output range and may lie outside it,
 			/// because the actual generator performs truncation at runtime.
@@ -36,7 +42,7 @@ namespace RandomTools.Core.Options.Delay
 			/// </summary>
 			public Normal WithMean(double value)
 			{
-				Mean = value;
+				Mean = value; 
 				return this;
 			}
 
@@ -65,7 +71,7 @@ namespace RandomTools.Core.Options.Delay
 				WithMaximum(max);
 
 				Mean = (min + max) / 2.0;
-				StandardDeviation = (max - min) / 6.0;
+				StandardDeviation = (max - min) / 6.0; 
 
 				return this;
 			}
@@ -83,25 +89,46 @@ namespace RandomTools.Core.Options.Delay
 			{
 				base.Validate();
 
-				if ((Maximum - Minimum) <= double.Epsilon)
-				{
-					throw new OptionsValidationException(this,
-						"Range is too small for a normal distribution.");
-				}
+				EnsureFinite(Mean);
+				EnsureFinite(StandardDeviation);
 
 				if (StandardDeviation <= double.Epsilon)
 				{
 					throw new OptionsValidationException(this,
-						$"Standard deviation ({StandardDeviation}) must be positive.");
+						$"Standard deviation ({StandardDeviation}) must be a positive numeric value. " +
+						$"Zero or negative σ prevents meaningful generation of delays.");
 				}
 
-				// Check if mathematically possible.
-				double hitRate = GaussianTools.GetRangeHitRate(Mean, StandardDeviation, (Minimum, Maximum));
+				if ((Maximum - Minimum) <= double.Epsilon)
+				{
+					throw new OptionsValidationException(this,
+						$"Configured range [{Minimum},{Maximum}] is too narrow. " +
+						$"A normal distribution cannot reliably generate values within such a small interval.");
+				}
 
+				double zMin = (Minimum - Mean) / StandardDeviation;
+				double zMax = (Maximum - Mean) / StandardDeviation;
+
+				if (zMin > MaxZShift)
+				{
+					throw new OptionsValidationException(this,
+						$"Range [{Minimum},{Maximum}] is shifted too far right relative to the mean ({Mean}). " +
+						$"Maximum allowed shift is ±{MaxZShift}σ. Excessive shift reduces sampling efficiency.");
+				}
+
+				if (zMax < -MaxZShift)
+				{
+					throw new OptionsValidationException(this,
+						$"Range [{Minimum},{Maximum}] is shifted too far left relative to the mean ({Mean}). " +
+						$"Maximum allowed shift is ±{MaxZShift}σ. Excessive shift reduces sampling efficiency.");
+				}
+
+				double hitRate = GaussianTools.GetRangeHitRate(Mean, StandardDeviation, (Minimum, Maximum));
 				if (hitRate <= double.Epsilon)
 				{
 					throw new OptionsValidationException(this,
-						$"Normal distribution will almost never produce a value within [{Minimum}, {Maximum}].");
+						$"Normal distribution (μ={Mean}, σ={StandardDeviation}) almost never produces values " +
+						$"within the range [{Minimum},{Maximum}]. Consider adjusting μ, σ, or the range.");
 				}
 			}
 
