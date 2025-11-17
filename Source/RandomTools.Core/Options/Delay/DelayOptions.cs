@@ -65,13 +65,13 @@ namespace RandomTools.Core.Options.Delay
 			///   (~99.7% of the distribution under the 6σ rule)
 			/// </para>
 			/// </summary>
-			public Normal WithAutoFit(double min, double max)
+			public Normal WithAutoFit(double minimum, double maximum)
 			{
-				WithMinimum(min);
-				WithMaximum(max);
+				WithMinimum(minimum);
+				WithMaximum(maximum);
 
-				Mean = (min + max) / 2.0;
-				StandardDeviation = (max - min) / 6.0; 
+				Mean = (minimum + maximum) / 2.0;
+				StandardDeviation = (maximum - minimum) / 6.0; 
 
 				return this;
 			}
@@ -140,9 +140,9 @@ namespace RandomTools.Core.Options.Delay
 				if (obj is not Normal other)
 					return false;
 
-				return 
-					Mean == other.Mean &&
-					StandardDeviation == other.StandardDeviation;
+				return
+					other.Mean == Mean &&
+					other.StandardDeviation == StandardDeviation;
 			}
 
 			public override int GetHashCode() =>
