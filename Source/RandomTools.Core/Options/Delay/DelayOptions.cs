@@ -145,7 +145,7 @@ namespace RandomTools.Core.Options.Delay
 						$"A normal distribution cannot reliably generate values within such a small interval.");
 				}
 
-				double pRange = GaussianTools.GetProbabilityInRange(Mean, StandardDeviation, (Minimum, Maximum));
+				double pRange = GaussianTools.GetRangeHitProbability(Mean, StandardDeviation, (Minimum, Maximum));
 				if (pRange <= double.Epsilon)
 				{
 					throw new OptionsValidationException(this,

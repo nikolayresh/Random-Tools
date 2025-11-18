@@ -35,7 +35,7 @@
 		///   <br/>— Returns <c>0</c> otherwise.
 		/// </para>
 		/// </returns>
-		public static double GetProbabilityInRange(double mean, double stdDev, (double Min, double Max) range)
+		public static double GetRangeHitProbability(double mean, double stdDev, (double Min, double Max) range)
 		{
 			if (range.Min >= range.Max)
 				return Probability.Impossible;
