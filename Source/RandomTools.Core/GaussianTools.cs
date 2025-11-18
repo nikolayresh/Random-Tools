@@ -10,18 +10,32 @@
 	internal static class GaussianTools
 	{
 		/// <summary>
-		/// Computes the probability that a normally distributed variable with mean <paramref name="mean"/> 
-		/// and standard deviation <paramref name="stdDev"/> falls within a specified range [Min, Max].
+		/// Calculates the probability that a normally distributed random variable,
+		/// defined by the specified <paramref name="mean"/> and <paramref name="stdDev"/>,
+		/// will fall inside the interval [Min, Max].
 		/// </summary>
-		/// <param name="mean">Mean (μ) of the normal distribution.</param>
-		/// <param name="stdDev">Standard deviation (σ) of the distribution. Must be non-negative.</param>
-		/// <param name="range">Tuple containing the minimum and maximum bounds of the interval.</param>
+		/// <param name="mean">
+		/// Mean (μ) of the normal distribution.
+		/// </param>
+		/// <param name="stdDev">
+		/// Standard deviation (σ) of the distribution. Must be positive.
+		/// A value close to zero is treated as a degenerate distribution.
+		/// </param>
+		/// <param name="range">
+		/// A tuple specifying the lower (Min) and upper (Max) bounds of the interval.
+		/// </param>
 		/// <returns>
-		/// Probability that a value sampled from N(mean, σ²) lies within [Min, Max].
-		/// Returns 0 if the interval is invalid or the standard deviation is zero and the mean is outside the range.
-		/// Returns 1 if the standard deviation is zero and the mean is inside the range.
+		/// A value in the range [0, 1] representing the probability that a sample from
+		/// N(mean, σ²) lies within [Min, Max].
+		///
+		/// <para>
+		/// • Returns <c>0</c> if the interval is invalid (Min ≥ Max).  
+		/// • If <paramref name="stdDev"/> is effectively zero:
+		///   <br/>— Returns <c>1</c> if <paramref name="mean"/> lies inside the interval.
+		///   <br/>— Returns <c>0</c> otherwise.
+		/// </para>
 		/// </returns>
-		public static double GetRangeHitRate(double mean, double stdDev, (double Min, double Max) range)
+		public static double GetProbabilityInRange(double mean, double stdDev, (double Min, double Max) range)
 		{
 			if (range.Min >= range.Max)
 				return Probability.Impossible;
@@ -61,58 +75,53 @@
 		}
 
 		/// <summary>
-		/// Calculates the minimum number of independent attempts required to achieve at least one success
-		/// given a per-attempt success probability <paramref name="hitRate"/>. 
+		/// Computes the minimum number of independent trials required to achieve
+		/// at least one success with a specified overall confidence level,
+		/// given the per-trial success probability <paramref name="pHit"/>.
 		/// 
-		/// The calculation ensures that the probability of failing all attempts does not exceed 
-		/// <paramref name="confidence"/>. Formally, it finds the smallest integer N such that:
+		/// The calculation finds the smallest integer N such that:
 		/// <code>
-		/// 1 - (1 - hitRate)^N ≥ confidence
+		/// 1 - (1 - pHit)^N ≥ confidence
 		/// </code>
-		/// 
-		/// Special cases are handled explicitly:
-		/// <list type="bullet">
-		/// <item>If <paramref name="hitRate"/> is effectively 0, success is practically impossible 
-		///      and the method returns <see cref="int.MaxValue"/>.</item>
-		/// <item>If <paramref name="hitRate"/> is effectively 1, success is guaranteed on the first attempt, 
-		///      so the method returns 1.</item>
-		/// </list>
+		/// or equivalently:
+		/// <code>
+		/// (1 - pHit)^N ≤ 1 - confidence
+		/// </code>
 		/// </summary>
-		/// <param name="hitRate">
-		/// Probability of success for a single attempt. Must be in the range [0.0, 1.0].
+		/// <param name="pHit">
+		/// Probability of success for a single independent trial (range: 0–1).
 		/// </param>
 		/// <param name="confidence">
-		/// Desired minimum probability of achieving at least one success across all attempts. 
-		/// Must be strictly between 0 and 1. Default is 0.9999 (i.e., 99.99% confidence).
+		/// Required probability of achieving at least one success across all trials.
+		/// Must be in the exclusive range (0, 1). Default is 0.9999 (99.99%).
 		/// </param>
 		/// <returns>
-		/// The minimum number of attempts required to achieve at least one success with the specified confidence.
-		/// Returns:
-		/// - <see cref="int.MaxValue"/> if success is effectively impossible (hitRate ≈ 0),
-		/// - 1 if success is essentially guaranteed (hitRate ≈ 1),
-		/// - or the smallest integer ≥ the calculated number of attempts for general cases.
+		/// The minimum number of trials necessary to meet the desired confidence.
 		/// </returns>
-		public static int GetHitAttempts(double hitRate, double confidence = 0.9999)
+        public static int GetRequiredAttempts(double pHit, double confidence = 0.9999)
 		{
-			if (hitRate < 0.0 || hitRate > 1.0)
+			if (pHit < 0.0 || pHit > 1.0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(hitRate),
-					"Hit rate must be between 0.0 and 1.0");
+				throw new ArgumentOutOfRangeException(nameof(pHit),
+					"Per-attempt success probability must be between 0.0 and 1.0.");
 			}
 
 			if (confidence <= 0.0 || confidence >= 1.0)
 			{
 				throw new ArgumentOutOfRangeException(nameof(confidence),
-					"Confidence must be in the exclusive range (0, 1)");
+					"Confidence must be in the exclusive range (0, 1).");
 			}
 
-			if (hitRate <= double.Epsilon)
+			// No realistic chance of success
+			if (pHit <= double.Epsilon)
 				return int.MaxValue;
 
-			if ((1.0 - hitRate) <= double.Epsilon)
+			// Guaranteed success on first attempt
+			if ((1.0 - pHit) <= double.Epsilon)
 				return 1;
 
-			double attempts = Math.Ceiling(Math.Log(1.0 - confidence) / Math.Log(1.0 - hitRate));
+			// Compute required attempts
+			long attempts = (long)Math.Ceiling(Math.Log(1.0 - confidence) / Math.Log(1.0 - pHit));
 
 			if (attempts >= int.MaxValue)
 				return int.MaxValue;
