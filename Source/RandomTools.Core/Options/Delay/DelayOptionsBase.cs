@@ -1,5 +1,4 @@
 ﻿using RandomTools.Core.Exceptions;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -108,15 +107,10 @@ namespace RandomTools.Core.Options.Delay
 		/// <inheritdoc />
 		public override bool Equals([NotNullWhen(true)] object? obj)
 		{
-			// Use pattern matching for type check and conversion
-			if (obj is not TDelayOptions other)
-			{
+			if (obj is null || obj.GetType() != typeof(TDelayOptions))
 				return false;
-			}
 
-			// The check for obj.GetType() != typeof(TDelayOptions) is handled implicitly
-			// by the pattern match unless the object is a derived type that also
-			// matches the pattern, which TDelayOptions is supposed to prevent anyway.
+			TDelayOptions other = (TDelayOptions)obj;
 
 			return other.Minimum == Minimum &&
 				   other.Maximum == Maximum &&

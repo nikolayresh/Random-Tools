@@ -2,11 +2,56 @@
 
 namespace RandomTools.Core.Options.Delay
 {
-	public static partial class DelayOptions
+	/// <summary>
+	/// Serves purely as a container for delay-distribution option types.
+	/// </summary>
+	public static class DelayOptions
 	{
+		/// <summary>
+		/// Configuration for a uniform delay distribution.
+		/// <para>
+		/// Every value in the interval [Minimum, Maximum] is equally likely.
+		/// This distribution is simple, efficient, and does not use rejection sampling.
+		/// </para>
+		/// </summary>
 		public sealed class Uniform : DelayOptionsBase<Uniform>
 		{
-			public Uniform() { }
+			/// <summary>
+			/// Validates configuration for the uniform distribution.
+			/// <para>
+			/// Validation rules:
+			/// <list type="bullet">
+			/// <item>
+			/// <description>
+			/// Base validation ensures that Minimum &lt; Maximum and the time unit is valid.
+			/// </description>
+			/// </item>
+			/// <item>
+			/// <description>
+			/// The uniform distribution requires a non-zero interval width.  
+			/// If the configured range collapses to a single floating-point value,
+			/// the generator cannot produce meaningful randomness.
+			/// </description>
+			/// </item>
+			/// </list>
+			/// </para>
+			/// </summary>
+			/// <exception cref="OptionsValidationException">
+			/// Thrown when the usable interval width is too small to generate
+			/// uniformly distributed values.
+			/// </exception>
+			public override void Validate()
+			{
+				base.Validate();
+
+				if ((Maximum - Minimum) <= double.Epsilon)
+				{
+					throw new OptionsValidationException(this,
+						$"Invalid uniform distribution range: [{Minimum}, {Maximum}]. " +
+						$"The interval is too narrow to produce meaningful randomness. " +
+						$"Increase the distance between [Minimum] and [Maximum] to allow reliable uniform sampling.");
+				}
+			}
 		}
 
 		/// <summary>
