@@ -81,7 +81,7 @@ namespace RandomTools.Core.Options.Delay
 			/// </summary>
 			public Normal WithMean(double value)
 			{
-				Mean = value; 
+				Mean = value;
 				return this;
 			}
 
@@ -98,11 +98,17 @@ namespace RandomTools.Core.Options.Delay
 			/// <summary>
 			/// Sets the minimum and maximum bounds and automatically derives
 			/// a reasonable mean and standard deviation:
-			/// <para>
-			/// • Mean = midpoint of the range  
-			/// • σ = (max − min) / 6, meaning ±3σ spans the full interval  
-			///   (~99.7% of the distribution under the 6σ rule)
-			/// </para>
+			/// <list type="bullet">
+			///   <item>
+			///     <description>Mean (μ) = midpoint of the range</description>
+			///   </item>
+			///   <item>
+			///     <description>
+			///       Standard deviation (σ) = (maximum − minimum) / 6, meaning that ±3σ
+			///       spans the full interval (~99.7% of the distribution under the 6σ rule)
+			///     </description>
+			///   </item>
+			/// </list>
 			/// </summary>
 			public Normal WithAutoFit(double minimum, double maximum)
 			{
@@ -110,7 +116,7 @@ namespace RandomTools.Core.Options.Delay
 				WithMaximum(maximum);
 
 				Mean = (minimum + maximum) / 2.0;
-				StandardDeviation = (maximum - minimum) / 6.0; 
+				StandardDeviation = (maximum - minimum) / 6.0;
 
 				return this;
 			}
@@ -154,15 +160,9 @@ namespace RandomTools.Core.Options.Delay
 				}
 			}
 
-			public override bool Equals(object? obj)
+			public override bool Equals(Normal? other)
 			{
-				if (!base.Equals(obj))
-					return false;
-
-				if (obj is not Normal other)
-					return false;
-
-				return
+				return base.Equals(other) &&
 					other.Mean == Mean &&
 					other.StandardDeviation == StandardDeviation;
 			}
@@ -172,70 +172,75 @@ namespace RandomTools.Core.Options.Delay
 		}
 
 		/// <summary>
-		/// Configuration for an exponential delay distribution.
-		/// 
-		/// Optional parameter:
-		/// - Lambda (λ): the rate parameter.
-		///   If not specified, λ is computed such that the mean (1 / λ)
-		///   equals the midpoint of the interval [Minimum, Maximum].
+		/// Configuration options for an exponential delay distribution.
+		/// <para>
+		/// Models the time between independent events occurring at a constant average rate.
+		/// Defined by a single parameter: <see cref="Rate"/> (λ).  
+		/// Generated delays are optionally truncated to the <see cref="Minimum"/>–<see cref="Maximum"/> range.
+		/// </para>
 		/// </summary>
 		public sealed class Exponential : DelayOptionsBase<Exponential>
 		{
 			/// <summary>
-			/// Optional rate parameter λ.
-			/// Must be strictly positive when explicitly set.
-			/// If null, λ is derived automatically from the midpoint of the range.
+			/// The rate parameter λ of the exponential distribution.
+			/// <para>
+			/// Must be strictly positive. Defines the expected number of events per unit time.  
+			/// Zero or negative values are invalid and will cause <see cref="Validate"/> to throw.
+			/// </para>
 			/// </summary>
-			internal double? Lambda;
+			internal double Rate;
 
 			/// <summary>
 			/// Sets the exponential rate parameter λ.
 			/// </summary>
-			/// <param name="value">Rate parameter. Must be > 0.</param>
-			public Exponential WithLambda(double value)
+			/// <param name="value">The rate parameter. Must be greater than zero.</param>
+			/// <returns>The current options instance for fluent configuration.</returns>
+			public Exponential WithRate(double value)
 			{
-				Lambda = value;
+				Rate = value;
 				return this;
 			}
 
 			/// <summary>
-			/// Resolves the effective λ to use:
-			/// - Returns explicitly set λ, or
-			/// - Computes a default λ based on mean = midpoint, λ = 1 / mean.
+			/// Validates the exponential options instance.
+			/// <para>
+			/// - Base class validation ensures <see cref="Minimum"/> and <see cref="Maximum"/> are valid.
+			/// - Ensures <see cref="Rate"/> is strictly positive.
+			/// </para>
 			/// </summary>
-			internal double GetEffectiveLambda()
-			{
-				if (Lambda.HasValue)
-					return Lambda.Value;
-
-				double mean = (Minimum + Maximum) / 2.0;
-
-				if (mean <= 0)
-					throw new OptionsValidationException(this,
-						"Cannot compute default lambda: midpoint mean is zero or negative.");
-
-				return 1.0 / mean;
-			}
-
-			/// <summary>
-			/// Validates configuration:
-			/// - Minimum/Maximum validated by the base class.
-			/// - Lambda must be > 0 when explicitly set.
-			/// </summary>
+			/// <exception cref="OptionsValidationException">
+			/// Thrown if <see cref="Rate"/> is zero or negative, or if the base validation fails.
+			/// </exception>
 			public override void Validate()
 			{
 				base.Validate();
 
-				if (Lambda.HasValue && Lambda.Value <= 0)
+				if (Rate <= 0.0)
 				{
 					throw new OptionsValidationException(this,
-						$"Lambda ({Lambda.Value}) must be positive.");
+						$"Rate parameter λ ({Rate}) must be positive. Zero or negative λ prevents meaningful generation of delays.");
 				}
-
-				// Note: Exponential distribution is unbounded above,
-				// so no constraints related to [Minimum, Maximum].
 			}
+
+			/// <summary>
+			/// Determines whether the specified <see cref="Exponential"/> is equal to the current instance.
+			/// </summary>
+			/// <param name="other">Another <see cref="Exponential"/> instance.</param>
+			/// <returns><see langword="true"/> if all properties are equal; otherwise, <see langword="false"/>.</returns>
+			public override bool Equals(Exponential? other)
+			{
+				return base.Equals(other)
+					&& other.Rate == Rate;
+			}
+
+			/// <summary>
+			/// Returns a hash code for the current instance.
+			/// <para>
+			/// Combines <see cref="Minimum"/>, <see cref="Maximum"/>, <see cref="TimeUnit"/>, and <see cref="Rate"/>.
+			/// </para>
+			/// </summary>
+			public override int GetHashCode() =>
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Rate);
 		}
 	}
 }
-

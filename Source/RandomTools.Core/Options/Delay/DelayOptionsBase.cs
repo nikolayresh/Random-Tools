@@ -22,7 +22,7 @@ namespace RandomTools.Core.Options.Delay
 	/// <typeparam name="TDelayOptions">
 	/// The concrete delay-options type used to enable a fluent API.
 	/// </typeparam>
-	public abstract class DelayOptionsBase<TDelayOptions> : IOptionsBase where TDelayOptions : DelayOptionsBase<TDelayOptions>
+	public abstract class DelayOptionsBase<TDelayOptions> : IOptionsBase, IEquatable<TDelayOptions> where TDelayOptions : DelayOptionsBase<TDelayOptions>
 	{
 		/// <summary>
 		/// Gets or sets the minimum delay value of the range.
@@ -101,29 +101,49 @@ namespace RandomTools.Core.Options.Delay
 		}
 
 		/// <summary>
-		/// Determines whether the specified object is equal to the current instance, 
-		/// checking <see cref="Minimum"/>, <see cref="Maximum"/>, and <see cref="TimeUnit"/>.
+		/// Checks equality with another options instance:
+		/// - returns <see langword="false"/> if null or type differs,
+		/// - returns <see langword="true"/> if same reference,
+		/// - otherwise calls <see cref="Equals(TDelayOptions?)"/>.
 		/// </summary>
-		/// <inheritdoc />
-		public override bool Equals([NotNullWhen(true)] object? obj)
+		public sealed override bool Equals([NotNullWhen(true)] object? obj)
 		{
 			if (obj is null || obj.GetType() != typeof(TDelayOptions))
 				return false;
 
-			TDelayOptions other = (TDelayOptions)obj;
+			if (ReferenceEquals(this, obj))
+				return true;
 
-			return other.Minimum == Minimum &&
-				   other.Maximum == Maximum &&
-				   other.TimeUnit == TimeUnit;
+			return Equals((TDelayOptions?)obj);
 		}
 
 		/// <summary>
-		/// Returns a hash code for the current instance.
+		/// Determines equality with another instance of the same options type.
 		/// </summary>
-		/// <inheritdoc />
+		/// <param name="other">The other instance to compare.</param>
+		/// <returns><see langword="true"/> if all base fields are equal; otherwise <see langword="false"/>.</returns>
+		public virtual bool Equals(TDelayOptions? other)
+		{
+			return other != null &&
+				other.Minimum == Minimum &&
+				other.Maximum == Maximum &&
+				other.TimeUnit == TimeUnit;
+		}
+
+		/// <summary>
+		/// Returns a hash code for the current options instance.
+		/// Only includes fields relevant to base equality.
+		/// Derived classes should override if they add new fields affecting equality.
+		/// </summary>
 		public override int GetHashCode() =>
 			HashCode.Combine(Minimum, Maximum, TimeUnit);
 
+		/// <summary>
+		/// Ensures that a numeric value is finite.
+		/// </summary>
+		/// <param name="value">The value to check.</param>
+		/// <param name="name">Optional parameter name, automatically provided by the compiler.</param>
+		/// <exception cref="OptionsValidationException">Thrown if value is NaN or infinite.</exception>
 		protected void EnsureFinite(double value, [CallerArgumentExpression(nameof(value))] string? name = null)
 		{
 			if (!double.IsFinite(value))

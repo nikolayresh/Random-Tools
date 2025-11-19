@@ -19,7 +19,6 @@ namespace RandomTools.Core.Random.Delay
 		/// Generates the next delay value as a <see cref="TimeSpan"/>.
 		/// The delay is drawn uniformly from the interval [Minimum, Maximum), meaning
 		/// the minimum value is inclusive and the maximum value is excluded.
-		/// Degenerate intervals such as [x, x] result in a deterministic delay.
 		/// </summary>
 		public override TimeSpan Next()
 		{

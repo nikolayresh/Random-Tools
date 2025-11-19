@@ -103,7 +103,7 @@
 			if (pHit < 0.0 || pHit > 1.0)
 			{
 				throw new ArgumentOutOfRangeException(nameof(pHit),
-					"Per-attempt success probability must be between 0.0 and 1.0.");
+					"Per-attempt success probability must be between 0.0 and 1.0");
 			}
 
 			if (confidence <= 0.0 || confidence >= 1.0)

@@ -19,19 +19,15 @@ namespace RandomTools.Core.Random.Delay
 		/// <returns>A TimeSpan representing the calculated delay.</returns>
 		public override TimeSpan Next()
 		{
-			// Retrieve the rate parameter (lambda).
-			double lambda = Options.GetEffectiveLambda();
-
 			double value;
 
 			do
 			{
-				// Generate a uniform random variable U in the interval (0, 1].
-				// This form (1.0 - R) avoids the possibility of U=0, which would lead to Math.Log(0) = -Infinity.
+				// avoid Math.Log(0)
 				double u = 1.0 - CoreTools.NextDouble();
 
-				// Apply the Inverse Transform formula: X = -ln(U) / lambda.
-				value = -Math.Log(u) / lambda;
+				// Apply the Inverse Transform formula: X = -ln(U) / lambda
+				value = -Math.Log(u) / Options.Rate;
 			} while (value < Options.Minimum || value > Options.Maximum);
 
 			return CoreTools.ToTimeSpan(value, Options.TimeUnit);

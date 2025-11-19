@@ -11,7 +11,7 @@ namespace RandomTools.Core.Random
 	/// the probability of returning <see langword="true"/> equals that bias value (0.0–1.0).
 	/// If no bias is specified, values are generated with an equal 50/50 probability.
 	/// </remarks>
-	public class RandomBool : RandomBase<bool, BoolOptions>
+	public sealed class RandomBool : RandomBase<bool, BoolOptions>
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RandomBool"/> class
