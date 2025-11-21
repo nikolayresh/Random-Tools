@@ -417,6 +417,45 @@ namespace RandomTools.Core
 				public static NormalDelay InMinutes(double mean, double stdDev, (double Min, double Max) range) =>
 					InMinutes(mean, stdDev, range.Min, range.Max);
 			}
+
+			public static class Triangular
+			{
+				private static readonly ConcurrentDictionary<DelayOptions.Triangular, TriangularDelay> sCache = new();
+
+				public static TriangularDelay InMilliseconds(double minimum, double maximum, double mode)
+				{
+					var options = new DelayOptions.Triangular()
+						.WithTimeUnit(TimeUnit.Millisecond)
+						.WithMinimum(minimum)
+						.WithMaximum(maximum)
+						.WithMode(mode);
+
+					return sCache.GetOrAdd(options,
+						_ => new TriangularDelay(options));
+				}
+				public static TriangularDelay InSeconds(double minimum, double maximum, double mode)
+				{
+					var options = new DelayOptions.Triangular()
+						.WithTimeUnit(TimeUnit.Second)
+						.WithMinimum(minimum)
+						.WithMaximum(maximum)
+						.WithMode(mode);
+
+					return sCache.GetOrAdd(options,
+						_ => new TriangularDelay(options));
+				}
+				public static TriangularDelay InMinutes(double minimum, double maximum, double mode)
+				{
+					var options = new DelayOptions.Triangular()
+						.WithTimeUnit(TimeUnit.Minute)
+						.WithMinimum(minimum)
+						.WithMaximum(maximum)
+						.WithMode(mode);
+
+					return sCache.GetOrAdd(options,
+						_ => new TriangularDelay(options));
+				}
+			}
 		}
 	}
 }

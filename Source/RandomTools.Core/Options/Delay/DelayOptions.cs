@@ -171,76 +171,36 @@ namespace RandomTools.Core.Options.Delay
 				HashCode.Combine(Minimum, Maximum, TimeUnit, Mean, StandardDeviation);
 		}
 
-		/// <summary>
-		/// Configuration options for an exponential delay distribution.
-		/// <para>
-		/// Models the time between independent events occurring at a constant average rate.
-		/// Defined by a single parameter: <see cref="Rate"/> (λ).  
-		/// Generated delays are optionally truncated to the <see cref="Minimum"/>–<see cref="Maximum"/> range.
-		/// </para>
-		/// </summary>
-		public sealed class Exponential : DelayOptionsBase<Exponential>
+		public sealed class Triangular : DelayOptionsBase<Triangular>
 		{
-			/// <summary>
-			/// The rate parameter λ of the exponential distribution.
-			/// <para>
-			/// Must be strictly positive. Defines the expected number of events per unit time.  
-			/// Zero or negative values are invalid and will cause <see cref="Validate"/> to throw.
-			/// </para>
-			/// </summary>
-			internal double Rate;
+			internal double Mode;
 
-			/// <summary>
-			/// Sets the exponential rate parameter λ.
-			/// </summary>
-			/// <param name="value">The rate parameter. Must be greater than zero.</param>
-			/// <returns>The current options instance for fluent configuration.</returns>
-			public Exponential WithRate(double value)
+			public Triangular WithMode(double value)
 			{
-				Rate = value;
+				Mode = value;
 				return this;
 			}
 
-			/// <summary>
-			/// Validates the exponential options instance.
-			/// <para>
-			/// - Base class validation ensures <see cref="Minimum"/> and <see cref="Maximum"/> are valid.
-			/// - Ensures <see cref="Rate"/> is strictly positive.
-			/// </para>
-			/// </summary>
-			/// <exception cref="OptionsValidationException">
-			/// Thrown if <see cref="Rate"/> is zero or negative, or if the base validation fails.
-			/// </exception>
 			public override void Validate()
 			{
 				base.Validate();
+				EnsureFinite(Mode);
 
-				if (Rate <= 0.0)
+				if (Mode < Minimum || Mode > Maximum)
 				{
 					throw new OptionsValidationException(this,
-						$"Rate parameter λ ({Rate}) must be positive. Zero or negative λ prevents meaningful generation of delays.");
+						$"Mode ({Mode}) must lie within the range [{Minimum}, {Maximum}]");
 				}
 			}
 
-			/// <summary>
-			/// Determines whether the specified <see cref="Exponential"/> is equal to the current instance.
-			/// </summary>
-			/// <param name="other">Another <see cref="Exponential"/> instance.</param>
-			/// <returns><see langword="true"/> if all properties are equal; otherwise, <see langword="false"/>.</returns>
-			public override bool Equals(Exponential? other)
+			public override bool Equals(Triangular? other)
 			{
-				return base.Equals(other)
-					&& other.Rate == Rate;
+				return base.Equals(other) &&
+					other.Mode == Mode;
 			}
 
-			/// <summary>
-			/// Returns a hash code for the current instance.
-			/// <para>
-			/// Combines <see cref="Minimum"/>, <see cref="Maximum"/>, <see cref="TimeUnit"/>, and <see cref="Rate"/>.
-			/// </para>
-			/// </summary>
 			public override int GetHashCode() =>
-				HashCode.Combine(Minimum, Maximum, TimeUnit, Rate);
+				HashCode.Combine(Minimum, Maximum, Mode, TimeUnit);
 		}
 	}
 }
