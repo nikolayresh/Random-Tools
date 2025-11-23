@@ -202,5 +202,31 @@ namespace RandomTools.Core.Options.Delay
 			public override int GetHashCode() =>
 				HashCode.Combine(Minimum, Maximum, Mode, TimeUnit);
 		}
+
+		/// <summary>
+		/// Configuration options for an arcsine delay distribution.
+		/// Ensures that the interval [Minimum, Maximum] is valid for meaningful sampling.
+		/// </summary>
+		public sealed class Arcsine : DelayOptionsBase<Arcsine>
+		{
+			/// <summary>
+			/// Validates that the configured range is wide enough to produce meaningful randomness.
+			/// </summary>
+			/// <exception cref="OptionsValidationException">
+			/// Thrown when <see cref="Maximum"/> and <see cref="Minimum"/> are too close.
+			/// </exception>
+			public override void Validate()
+			{
+				base.Validate();
+
+				if ((Maximum - Minimum) <= double.Epsilon)
+				{
+					throw new OptionsValidationException(this,
+						$@"Invalid arcsine distribution range: [{Minimum}, {Maximum}]. 
+The interval is too narrow to produce meaningful randomness. 
+Increase the distance between [Minimum] and [Maximum] to allow reliable arcsine sampling.");
+				}
+			}
+		}
 	}
 }
