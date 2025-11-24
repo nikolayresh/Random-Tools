@@ -104,14 +104,13 @@ namespace RandomTools.Core.Random.Delay
 		public async Task<TimeSpan> WaitAsync(CancellationToken cancellationToken = default)
 		{
 			TimeSpan delay = Next();
+			if (delay <= TimeSpan.Zero)
+				return delay;
 
 			// Cancel immediately if requested
 			cancellationToken.ThrowIfCancellationRequested();
 
-			if (delay > TimeSpan.Zero)
-			{
-				await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-			}
+			await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 
 			return delay;
 		}
