@@ -36,9 +36,6 @@ namespace RandomTools.Core.Random.Delay
 		/// <returns>A <see cref="TimeSpan"/> representing the generated delay.</returns>
 		public override TimeSpan Next()
 		{
-			double min = Options.Minimum;
-			double max = Options.Maximum;
-
 			// Generate a uniform random value in [0,1)
 			double u = CoreTools.NextDouble();
 
@@ -47,7 +44,7 @@ namespace RandomTools.Core.Random.Delay
 			double sinSq = Math.Sin(angle) * Math.Sin(angle);
 
 			// Scale the result to the configured range
-			double value = min + sinSq * (max - min);
+			double value = ScaleToRange(sinSq);
 
 			// Convert the numeric value to a TimeSpan using the specified time unit
 			return CoreTools.ToTimeSpan(value, Options.TimeUnit);

@@ -1,4 +1,5 @@
-﻿using RandomTools.Core.Options.Delay;
+﻿using RandomTools.Core;
+using RandomTools.Core.Options.Delay;
 using RandomTools.Core.Random.Delay;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,50 @@ namespace RandomTools.Tests
 	[TestFixture]
 	public class TriangularDelayTests
 	{
+		[Test]
+		public void TestThree()
+		{
+			var options = new DelayOptions.Bates()
+				.WithMinimum(100)
+				.WithMaximum(200)
+				.WithSamples(6);
+
+			var delay = new BatesDelay(options);
+			var data = new List<TimeSpan>();
+			for (int i = 0; i < 1_000_000; i++)
+			{
+				var next = delay.Next();
+				data.Add(next);
+			}
+
+			var min = data.Min(x => x);
+			var max = data.Max(x => x);
+			Debugger.Break();
+		}
+
+		[Test]
+		public void TestTwo()
+		{
+			var options = new DelayOptions.Arcsine()
+				.WithMinimum(100)
+				.WithMaximum(150)
+				.WithTimeUnit(TimeUnit.Second);
+
+			var delay = new ArcsineDelay(options);
+			var data = new List<TimeSpan>();
+
+			for (int i = 0; i < 1_000_000; i++)
+			{
+				var next = delay.Next();
+				data.Add(next);
+			}
+
+			var min = data.Min(x => x);
+			var max = data.Max(x => x);
+
+			Debugger.Break();
+		}
+
 		[Test]
 		public void TestOne()
 		{

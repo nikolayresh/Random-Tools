@@ -93,5 +93,29 @@ namespace RandomTools.Core.Random.Delay
 
 			return delay;
 		}
+
+		/// <summary>
+		/// Scales a fraction in the range [0,1] to the configured [Minimum, Maximum] range.
+		/// Throws an exception if the fraction is not in [0,1].
+		/// </summary>
+		/// <param name="fraction">
+		/// A value between 0 and 1, typically produced by the underlying random distribution.
+		/// </param>
+		/// <returns>
+		/// The value scaled to the range [Minimum, Maximum].
+		/// </returns>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// Thrown if <paramref name="fraction"/> is less than 0 or greater than 1.
+		/// </exception>
+		protected double ScaleToRange(double fraction)
+		{
+			// Throw if the fraction is out of bounds
+			ArgumentOutOfRangeException.ThrowIfNegative(fraction);
+			ArgumentOutOfRangeException.ThrowIfGreaterThan(fraction, 1.0);
+
+			// Scale fraction [0,1] linearly to [Minimum, Maximum]
+			double range = Options.Maximum - Options.Minimum;
+			return Options.Minimum + (fraction * range);
+		}
 	}
 }
