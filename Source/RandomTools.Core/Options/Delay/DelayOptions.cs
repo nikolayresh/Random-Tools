@@ -228,5 +228,158 @@ Increase the distance between [Minimum] and [Maximum] to allow reliable arcsine 
 				}
 			}
 		}
+
+		/// <summary>
+		/// Configuration options for a <b>Bates distribution</b> used to generate
+		/// bounded random delays.
+		/// <para>
+		/// The Bates distribution is defined as the arithmetic mean of
+		/// <c>N</c> independent uniform samples. It produces a smooth,
+		/// bell-shaped distribution that remains strictly within the
+		/// configured <see cref="Minimum"/> and <see cref="Maximum"/> range.
+		/// </para>
+		/// <para>
+		/// When <c>Samples = 1</c>, the distribution degenerates to a uniform
+		/// distribution. Increasing <c>Samples</c> makes the distribution
+		/// progressively smoother and more concentrated toward the center,
+		/// approaching a bounded normal-like shape.
+		/// </para>
+		/// </summary>
+		public sealed class Bates : DelayOptionsBase<Bates>
+		{
+			/// <summary>
+			/// Gets or sets the number of uniform samples used to construct the
+			/// Bates distribution. Must be at least <c>1</c>.
+			/// </summary>
+			internal int Samples;
+
+			/// <summary>
+			/// Sets the number of uniform samples used to compute the Bates mean.
+			/// Larger values produce smoother, more bell-shaped distributions.
+			/// </summary>
+			/// <param name="value">The number of samples (must be ≥ 1).</param>
+			/// <returns>The current instance for fluent configuration.</returns>
+			public Bates WithSamples(int value)
+			{
+				Samples = value;
+				return this;
+			}
+
+			/// <summary>
+			/// Validates the configuration and throws an <see cref="OptionsValidationException"/>
+			/// if the settings are not suitable for generating a Bates distribution.
+			/// </summary>
+			public override void Validate()
+			{
+				base.Validate();
+
+				if ((Maximum - Minimum) <= double.Epsilon)
+				{
+					throw new OptionsValidationException(this,
+						$"Configured range [{Minimum}, {Maximum}] is too narrow. " +
+						$"A Bates distribution cannot reliably generate values within such a small interval.");
+				}
+
+				if (Samples < 1)
+				{
+					throw new OptionsValidationException(this,
+						$"Samples ({Samples}) must be at least 1 to produce meaningful Bates distribution sampling.");
+				}
+			}
+
+			/// <inheritdoc />
+			public override bool Equals(Bates? other)
+			{
+				return base.Equals(other) &&
+					   other.Samples == Samples;
+			}
+
+			/// <inheritdoc />
+			public override int GetHashCode() =>
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Samples);
+		}
+
+		/// <summary>
+		/// Configuration options for a Polynomial / Power delay distribution.
+		/// <para>
+		/// The Polynomial distribution generates values in [Minimum, Maximum] with a density
+		/// proportional to (x - Minimum)^Power or (Maximum - x)^Power if reversed.
+		/// </para>
+		/// <para>
+		/// A Power of 0 produces a uniform distribution. Higher Power values produce
+		/// increasingly skewed distributions toward Maximum (or Minimum if Reverse=true).
+		/// </para>
+		/// </summary>
+		public sealed class Polynomial : DelayOptionsBase<Polynomial>
+		{
+			/// <summary>
+			/// Gets the power exponent for the polynomial distribution.
+			/// Must be >= 0.
+			/// </summary>
+			internal double Power { get; private set; } = 1.0;
+
+			/// <summary>
+			/// Indicates whether the distribution is reversed: density proportional to (Maximum - x)^Power.
+			/// </summary>
+			internal bool Reverse { get; private set; } = false;
+
+			/// <summary>
+			/// Sets the power exponent (Power ≥ 0) for the polynomial distribution.
+			/// </summary>
+			/// <param name="value">Exponent value.</param>
+			/// <returns>The current instance for fluent configuration.</returns>
+			public Polynomial WithPower(double value)
+			{
+				Power = value;
+				return this;
+			}
+
+			/// <summary>
+			/// Sets whether the distribution is reversed (more values near Minimum).
+			/// </summary>
+			/// <param name="value">True to reverse, false for normal orientation.</param>
+			/// <returns>The current instance for fluent configuration.</returns>
+			public Polynomial WithReverse(bool value)
+			{
+				Reverse = value;
+				return this;
+			}
+
+			/// <summary>
+			/// Validates the configuration, throwing an <see cref="OptionsValidationException"/>
+			/// if any option is invalid.
+			/// </summary>
+			public override void Validate()
+			{
+				base.Validate();
+
+				if ((Maximum - Minimum) <= double.Epsilon)
+				{
+					throw new OptionsValidationException(this,
+						$"Configured range [{Minimum}, {Maximum}] is too narrow. " +
+						"Polynomial distribution cannot reliably generate values in such a small interval.");
+				}
+
+				EnsureFinite(Power);
+
+				if (Power < 0.0)
+				{
+					throw new OptionsValidationException(this,
+						$"Power ({Power}) must be >= 0.");
+				}
+			}
+
+			/// <inheritdoc/>
+			public override bool Equals(Polynomial? other)
+			{
+				return base.Equals(other) &&
+					   other.Power == Power &&
+					   other.Reverse == Reverse;
+			}
+
+			/// <inheritdoc/>
+			public override int GetHashCode() =>
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Power, Reverse);
+		}
 	}
 }

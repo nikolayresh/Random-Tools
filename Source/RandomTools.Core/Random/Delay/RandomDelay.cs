@@ -30,7 +30,9 @@ namespace RandomTools.Core.Random.Delay
 		/// <param name="options">
 		/// Configuration defining how delays are calculated, including range and distribution parameters.
 		/// </param>
+#pragma warning disable IDE0290 // Use primary constructor
 		protected RandomDelay(TOptions options) : base(options)
+#pragma warning restore IDE0290 // Use primary constructor
 		{
 			// Base class stores options and provides the Next() method for generating delays.
 		}
@@ -92,6 +94,29 @@ namespace RandomTools.Core.Random.Delay
 			}
 
 			return delay;
+		}
+
+		/// <summary>
+		/// Scales a fraction in the range [0,1] to the configured [Minimum, Maximum] range.
+		/// </summary>
+		/// <param name="fraction">
+		/// A value between 0 and 1, typically produced by the underlying random distribution.
+		/// </param>
+		/// <returns>
+		/// The value scaled linearly to the range [Minimum, Maximum].
+		/// </returns>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// Thrown if <paramref name="fraction"/> is less than 0 or greater than 1.
+		/// </exception>
+		protected double ScaleToRange(double fraction)
+		{
+			// Validate that the fraction is within the normalized [0,1] range
+			ArgumentOutOfRangeException.ThrowIfNegative(fraction);
+			ArgumentOutOfRangeException.ThrowIfGreaterThan(fraction, 1.0);
+
+			// Linearly scale fraction to the configured range
+			double range = Options.Maximum - Options.Minimum;
+			return Math.FusedMultiplyAdd(range, fraction, Options.Minimum);
 		}
 	}
 }
