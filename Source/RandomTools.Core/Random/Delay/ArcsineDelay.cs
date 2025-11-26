@@ -44,10 +44,10 @@ namespace RandomTools.Core.Random.Delay
 			double sinSq = Math.Sin(angle) * Math.Sin(angle);
 
 			// Scale the result to the configured range
-			double value = ScaleToRange(sinSq);
+			double scaled = ScaleToRange(sinSq);
 
 			// Convert the numeric value to a TimeSpan using the specified time unit
-			return CoreTools.ToTimeSpan(value, Options.TimeUnit);
+			return CoreTools.ToTimeSpan(scaled, Options.TimeUnit);
 		}
 	}
 }

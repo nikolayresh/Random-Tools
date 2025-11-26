@@ -171,34 +171,62 @@ namespace RandomTools.Core.Options.Delay
 				HashCode.Combine(Minimum, Maximum, TimeUnit, Mean, StandardDeviation);
 		}
 
+		/// <summary>
+		/// Options for generating a Triangular distribution-based delay.
+		/// </summary>
 		public sealed class Triangular : DelayOptionsBase<Triangular>
 		{
+			/// <summary>
+			/// The mode (peak) of the triangular distribution.
+			/// Must be between <see cref="Minimum"/> and <see cref="Maximum"/>.
+			/// </summary>
 			internal double Mode;
 
+			/// <summary>
+			/// Sets the mode of the triangular distribution.
+			/// </summary>
+			/// <param name="value">The mode value.</param>
+			/// <returns>The current <see cref="Triangular"/> instance for fluent configuration.</returns>
 			public Triangular WithMode(double value)
 			{
 				Mode = value;
 				return this;
 			}
 
+			/// <summary>
+			/// Validates the options to ensure they are consistent and usable.
+			/// </summary>
 			public override void Validate()
 			{
 				base.Validate();
+
 				EnsureFinite(Mode);
 
+				// Check that the mode lies within the defined [Minimum, Maximum] range
 				if (Mode < Minimum || Mode > Maximum)
 				{
-					throw new OptionsValidationException(this,
-						$"Mode ({Mode}) must lie within the range [{Minimum}, {Maximum}]");
+					throw new OptionsValidationException(
+						this,
+						$"Mode ({Mode}) must lie within the range [{Minimum}, {Maximum}]"
+					);
 				}
 			}
 
+			/// <summary>
+			/// Determines whether the current instance is equal to another <see cref="Triangular"/> instance.
+			/// </summary>
+			/// <param name="other">Another <see cref="Triangular"/> instance.</param>
+			/// <returns>True if equal, false otherwise.</returns>
 			public override bool Equals(Triangular? other)
 			{
 				return base.Equals(other) &&
-					other.Mode == Mode;
+					   other.Mode == Mode;
 			}
 
+			/// <summary>
+			/// Returns a hash code for the current instance.
+			/// </summary>
+			/// <returns>A combined hash code of the relevant properties.</returns>
 			public override int GetHashCode() =>
 				HashCode.Combine(Minimum, Maximum, Mode, TimeUnit);
 		}
@@ -316,12 +344,12 @@ Increase the distance between [Minimum] and [Maximum] to allow reliable arcsine 
 			/// Gets the power exponent for the polynomial distribution.
 			/// Must be >= 0.
 			/// </summary>
-			internal double Power { get; private set; } = 1.0;
+			internal double Power;
 
 			/// <summary>
 			/// Indicates whether the distribution is reversed: density proportional to (Maximum - x)^Power.
 			/// </summary>
-			internal bool Reverse { get; private set; } = false;
+			internal bool Reverse;
 
 			/// <summary>
 			/// Sets the power exponent (Power ≥ 0) for the polynomial distribution.
@@ -380,6 +408,74 @@ Increase the distance between [Minimum] and [Maximum] to allow reliable arcsine 
 			/// <inheritdoc/>
 			public override int GetHashCode() =>
 				HashCode.Combine(Minimum, Maximum, TimeUnit, Power, Reverse);
+		}
+
+		public sealed class Sequence : DelayOptionsBase<Sequence>
+		{
+			internal IList<double> Values = [];
+			internal bool RandomizeOrder;
+
+			public Sequence WithValues(params double[] values)
+			{
+				Values ??= [];
+				foreach (double next in values)
+				{
+					Values.Add(next);
+				}
+
+				return this;
+			}
+
+			public Sequence WithValue(double value)
+			{
+				Values ??= [];
+				Values.Add(value);
+
+				return this;
+			}
+
+			public Sequence WithRandomizeOrder(bool value)
+			{
+				RandomizeOrder = value;
+				return this;
+			}
+
+			public override void Validate()
+			{
+				base.Validate();
+
+				if (Values is null)
+				{
+					throw new OptionsValidationException(this,
+						$"Values array for the sequence distribution cannot be null.");
+				}
+
+				if (Values.Count == 0)
+				{
+					throw new OptionsValidationException(this,
+						$"At least one value must be provided for the sequence distribution.");
+				}
+
+				foreach (double next in Values)
+				{
+					EnsureFinite(next);
+
+					if (next < 0.0 || next > 1.0)
+					{
+						throw new OptionsValidationException(this,
+							$"All sequence values must lie within [0.0, 1.0]. Invalid value: {next}");
+					}
+				}
+			}
+
+			public override bool Equals(Sequence? other)
+			{
+				return base.Equals(other) &&
+					   other.Values.SequenceEqual(Values);
+			}
+
+			public override int GetHashCode() =>
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Values);
 		}
 	}
 }

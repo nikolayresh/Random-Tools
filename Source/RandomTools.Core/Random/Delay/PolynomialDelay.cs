@@ -45,9 +45,9 @@ namespace RandomTools.Core.Random.Delay
 			}
 
 			// Scale the normalized fraction to the [Minimum, Maximum] range
-			double value = ScaleToRange(fraction);
+			double scaled = ScaleToRange(fraction);
 
-			return CoreTools.ToTimeSpan(value, Options.TimeUnit);
+			return CoreTools.ToTimeSpan(scaled, Options.TimeUnit);
 		}
 	}
 }

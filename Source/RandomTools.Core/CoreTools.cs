@@ -89,7 +89,7 @@ namespace RandomTools.Core
 				return min;
 
 			// Scale to the target range [min, max)
-			return min + ((max - min) * NextDouble());
+			return Math.FusedMultiplyAdd(NextDouble(), max - min, min);
 		}
 
 		/// <summary>

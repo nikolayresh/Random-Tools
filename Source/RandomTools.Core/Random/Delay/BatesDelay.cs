@@ -45,9 +45,9 @@ namespace RandomTools.Core.Random.Delay
 			}
 
 			// Map mean from [0,1] to the configured [Minimum, Maximum] range
-			double value = ScaleToRange(mean);
+			double scaled = ScaleToRange(mean);
 
-			return CoreTools.ToTimeSpan(value, Options.TimeUnit);
+			return CoreTools.ToTimeSpan(scaled, Options.TimeUnit);
 		}
 	}
 }
