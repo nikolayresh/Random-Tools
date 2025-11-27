@@ -444,6 +444,7 @@ namespace RandomTools.Core
 					return sCache.GetOrAdd(options,
 						_ => new TriangularDelay(options));
 				}
+
 				public static TriangularDelay InMinutes(double minimum, double maximum, double mode)
 				{
 					var options = new DelayOptions.Triangular()
