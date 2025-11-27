@@ -39,12 +39,9 @@ namespace RandomTools.Core.Random.Delay
 		/// <param name="options">
 		/// Configuration defining range and distribution parameters for the delay.
 		/// </param>
-#pragma warning disable IDE0290 // Use primary constructor
-		protected RandomDelay(TOptions options) : base(options)
-#pragma warning restore IDE0290 // Use primary constructor
-		{
-			// Options are stored by the base class. The Next() method generates the delay values.
-		}
+#pragma warning disable IDE0290
+		protected RandomDelay(TOptions options) : base(options) { }
+#pragma warning restore IDE0290
 
 		/// <summary>
 		/// Synchronously waits for a randomly generated delay.
@@ -80,6 +77,7 @@ namespace RandomTools.Core.Random.Delay
 			var spinWait = new SpinWait();
 			while (Stopwatch.GetTimestamp() < targetTicks)
 			{
+				// Perform a single spin iteration
 				spinWait.SpinOnce();
 			}
 
@@ -116,25 +114,29 @@ namespace RandomTools.Core.Random.Delay
 		}
 
 		/// <summary>
-		/// Scales a normalized fraction [0,1] from the underlying distribution
-		/// to the configured [Minimum, Maximum] range.
+		/// Linearly maps a normalized factor in the range [0,1]
+		/// to the configured interval <see cref="Options.Minimum"/> to <see cref="Options.Maximum"/>.
 		/// </summary>
-		/// <param name="fraction">
-		/// A value between 0 and 1 produced by the random distribution.
+		/// <param name="factor">
+		/// A normalized interpolation factor in the range [0,1].
+		/// Represents how far between the minimum (0) and maximum (1) the result should lie.
 		/// </param>
-		/// <returns>A linearly scaled value in the configured range [Minimum, Maximum].</returns>
+		/// <returns>
+		/// A value linearly interpolated within the configured range
+		/// based on the provided <paramref name="factor"/>.
+		/// </returns>
 		/// <exception cref="ArgumentOutOfRangeException">
-		/// Thrown if <paramref name="fraction"/> is outside the [0,1] range.
+		/// Thrown if <paramref name="factor"/> is outside the [0,1] interval.
 		/// </exception>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		protected double ScaleToRange(double fraction)
+		protected double ScaleToRange(double factor)
 		{
-			ArgumentOutOfRangeException.ThrowIfNegative(fraction);
-			ArgumentOutOfRangeException.ThrowIfGreaterThan(fraction, 1.0);
+			ArgumentOutOfRangeException.ThrowIfNegative(factor);
+			ArgumentOutOfRangeException.ThrowIfGreaterThan(factor, 1.0);
 
 			return Math.FusedMultiplyAdd(
+				factor,
 				Options.Maximum - Options.Minimum,
-				fraction,
 				Options.Minimum);
 		}
 	}

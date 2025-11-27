@@ -5,13 +5,11 @@ namespace RandomTools.Core.Random.Delay
 	public sealed class SequenceDelay : RandomDelay<DelayOptions.Sequence>
 	{
 		private readonly object _sync = new();
-		private int _index = 0;
+		private int _index;
 
-#pragma warning disable IDE0290 // Use primary constructor
-		public SequenceDelay(DelayOptions.Sequence options) : base(options)
-#pragma warning restore IDE0290 // Use primary constructor
-		{
-		}
+#pragma warning disable IDE0290
+		public SequenceDelay(DelayOptions.Sequence options) : base(options) { }
+#pragma warning restore IDE0290
 
 		public override TimeSpan Next()
 		{
