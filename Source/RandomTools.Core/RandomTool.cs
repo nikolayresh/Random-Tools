@@ -88,7 +88,8 @@ namespace RandomTools.Core
 			/// <returns>A <see cref="RandomBool"/> instance configured with the specified bias.</returns>
 			public static RandomBool Bias(double bias)
 			{
-				var options = new BoolOptions().WithBias(bias);
+				var options = new BoolOptions()
+					.WithBias(bias);
 
 				return sBiasCache.GetOrAdd(options,
 					_ => new RandomBool(options));
@@ -286,7 +287,7 @@ namespace RandomTools.Core
 				/// Creates (or retrieves from cache) a <see cref="NormalDelay"/> instance
 				/// whose mean and standard deviation are automatically computed so that
 				/// the resulting truncated normal distribution "fits" naturally into the
-				/// provided range <paramref name="min"/>–<paramref name="max"/>.
+				/// provided range <paramref name="minimum"/>–<paramref name="maximum"/>.
 				/// <para>
 				/// AutoFit is intended for scenarios where you want a natural-looking
 				/// Gaussian spread over a known interval but do not want to manually compute
@@ -299,15 +300,15 @@ namespace RandomTools.Core
 				/// boundaries.
 				/// </para>
 				/// </summary>
-				/// <param name="min">Lower bound of allowed delay values.</param>
-				/// <param name="max">Upper bound of allowed delay values.</param>
+				/// <param name="minimum">Lower bound of allowed delay values.</param>
+				/// <param name="maximum">Upper bound of allowed delay values.</param>
 				/// <param name="unit">The time unit (ms/s/min) for this delay generator.</param>
 				/// <returns>A cached or newly created <see cref="NormalDelay"/> instance.</returns>
-				public static NormalDelay AutoFit(double min, double max, TimeUnit unit)
+				public static NormalDelay AutoFit(double minimum, double maximum, TimeUnit unit)
 				{
 					var options = new DelayOptions.Normal()
 						.WithTimeUnit(unit)
-						.WithAutoFit(min, max);
+						.WithAutoFit(minimum, maximum);
 
 					return sCache.GetOrAdd(options,
 						_ => new NormalDelay(options));
@@ -324,15 +325,15 @@ namespace RandomTools.Core
 				/// Convenience overload for <see cref="AutoFit(double,double,TimeUnit)"/>  
 				/// using <see cref="TimeUnit.Second"/>.
 				/// </summary>
-				public static NormalDelay AutoFitInSeconds(double min, double max) =>
-					AutoFit(min, max, TimeUnit.Second);
+				public static NormalDelay AutoFitSeconds(double minimum, double maximum) =>
+					AutoFit(minimum, maximum, TimeUnit.Second);
 
 				/// <summary>
 				/// Convenience overload for <see cref="AutoFit(double,double,TimeUnit)"/>  
 				/// using <see cref="TimeUnit.Minute"/>.
 				/// </summary>
-				public static NormalDelay AutoFitInMinutes(double min, double max) =>
-					AutoFit(min, max, TimeUnit.Minute);
+				public static NormalDelay AutoFitMinutes(double minimum, double maximum) =>
+					AutoFit(minimum, maximum, TimeUnit.Minute);
 
 				/// <summary>
 				/// Creates (or retrieves from cache) a <see cref="NormalDelay"/> configured
@@ -367,7 +368,7 @@ namespace RandomTools.Core
 				/// Same as <see cref="InMilliseconds(double,double,double,double)"/>  
 				/// but uses seconds as the time unit.
 				/// </summary>
-				public static NormalDelay InSeconds(double mean, double stdDev, double min, double max)
+				public static NormalDelay Seconds(double mean, double stdDev, double min, double max)
 				{
 					var options = new DelayOptions.Normal()
 						.WithTimeUnit(TimeUnit.Second)
@@ -409,7 +410,7 @@ namespace RandomTools.Core
 				/// Tuple-based overload for seconds.
 				/// </summary>
 				public static NormalDelay InSeconds(double mean, double stdDev, (double Min, double Max) range) =>
-					InSeconds(mean, stdDev, range.Min, range.Max);
+					Seconds(mean, stdDev, range.Min, range.Max);
 
 				/// <summary>
 				/// Tuple-based overload for minutes.

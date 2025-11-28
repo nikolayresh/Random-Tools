@@ -20,9 +20,7 @@ namespace RandomTools.Core.Random
 		/// <param name="options">
 		/// The options that define bias and other behavior for random boolean generation.
 		/// </param>
-		public RandomBool(BoolOptions options) : base(options) 
-		{ 
-		}
+		public RandomBool(BoolOptions options) : base(options) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RandomBool"/> class 
@@ -33,9 +31,7 @@ namespace RandomTools.Core.Random
 		/// producing <see langword="true"/> and <see langword="false"/> values
 		/// with equal probability (50/50).
 		/// </remarks>
-		public RandomBool() : base(new BoolOptions())
-		{
-		}
+		public RandomBool() : base(new BoolOptions()) { }
 
 		/// <summary>
 		/// Returns a random boolean value.
