@@ -58,30 +58,24 @@ namespace RandomTools.Core.Random.Delay
 
 			while (true)
 			{
-				TimeSpan diff = delay - stopWatch.Elapsed;
+				// Calculate remaining time
+				TimeSpan remainTime = delay - stopWatch.Elapsed;
+				if (remainTime <= SpinWaitThreshold)
+					break;
 
-				if (diff > SpinWaitThreshold)
-				{
-					TimeSpan sleepTime = diff - SpinWaitThreshold;
+				TimeSpan sleepTime = remainTime - SpinWaitThreshold;
+				if (sleepTime <= TimeSpan.Zero)
+					break;
 
-					// Prevent negative or zero sleep due to rounding
-					if (sleepTime.Ticks > 0L)
-						Thread.Sleep(sleepTime);
-
-					continue;
-				}
-
-				break;
+				Thread.Sleep(sleepTime);
 			}
 
-			// If the delay has already elapsed, return immediately
-			if (stopWatch.Elapsed >= delay)
-				return delay;
-
-			// Spin-wait for the remaining time to improve precision
-			var spinWait = new SpinWait();
+			// Spin-wait for the remaining time
+			var spinner = new SpinWait();
 			while (stopWatch.Elapsed < delay)
-				spinWait.SpinOnce();
+			{
+				spinner.SpinOnce();
+			}
 
 			return delay;
 		}
