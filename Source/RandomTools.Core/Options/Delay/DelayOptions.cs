@@ -44,13 +44,7 @@ namespace RandomTools.Core.Options.Delay
 			{
 				base.Validate();
 
-				if ((Maximum - Minimum) <= double.Epsilon)
-				{
-					throw new OptionsValidationException(this,
-						$"Invalid uniform distribution range: [{Minimum}, {Maximum}]. " +
-						$"The interval is too narrow to produce meaningful randomness. " +
-						$"Increase the distance between [Minimum] and [Maximum] to allow reliable uniform sampling.");
-				}
+				EnsureValidRange();
 			}
 		}
 
@@ -134,6 +128,7 @@ namespace RandomTools.Core.Options.Delay
 			{
 				base.Validate();
 
+				EnsureValidRange();
 				EnsureFinite(Mean);
 				EnsureFinite(StandardDeviation);
 
@@ -142,13 +137,6 @@ namespace RandomTools.Core.Options.Delay
 					throw new OptionsValidationException(this,
 						$"Standard deviation ({StandardDeviation}) must be a positive numeric value. " +
 						$"Zero or negative σ prevents meaningful generation of delays.");
-				}
-
-				if ((Maximum - Minimum) <= double.Epsilon)
-				{
-					throw new OptionsValidationException(this,
-						$"Configured range [{Minimum},{Maximum}] is too narrow. " +
-						$"A normal distribution cannot reliably generate values within such a small interval.");
 				}
 
 				double pRange = GaussianTools.GetRangeHitProbability(Mean, StandardDeviation, (Minimum, Maximum));
@@ -200,6 +188,7 @@ namespace RandomTools.Core.Options.Delay
 			{
 				base.Validate();
 
+				EnsureValidRange();
 				EnsureFinite(Mode);
 
 				// Check that the mode lies within the defined [Minimum, Maximum] range
@@ -247,13 +236,7 @@ namespace RandomTools.Core.Options.Delay
 			{
 				base.Validate();
 
-				if ((Maximum - Minimum) <= double.Epsilon)
-				{
-					throw new OptionsValidationException(this,
-						$@"Invalid arcsine distribution range: [{Minimum}, {Maximum}]. 
-The interval is too narrow to produce meaningful randomness. 
-Increase the distance between [Minimum] and [Maximum] to allow reliable arcsine sampling.");
-				}
+				EnsureValidRange();
 			}
 		}
 
@@ -301,12 +284,7 @@ Increase the distance between [Minimum] and [Maximum] to allow reliable arcsine 
 			{
 				base.Validate();
 
-				if ((Maximum - Minimum) <= double.Epsilon)
-				{
-					throw new OptionsValidationException(this,
-						$"Configured range [{Minimum}, {Maximum}] is too narrow. " +
-						$"A Bates distribution cannot reliably generate values within such a small interval.");
-				}
+				EnsureValidRange();
 
 				if (Samples < 1)
 				{
@@ -381,13 +359,7 @@ Increase the distance between [Minimum] and [Maximum] to allow reliable arcsine 
 			{
 				base.Validate();
 
-				if ((Maximum - Minimum) <= double.Epsilon)
-				{
-					throw new OptionsValidationException(this,
-						$"Configured range [{Minimum}, {Maximum}] is too narrow. " +
-						"Polynomial distribution cannot reliably generate values in such a small interval.");
-				}
-
+				EnsureValidRange();
 				EnsureFinite(Power);
 
 				if (Power < 0.0)
@@ -408,6 +380,105 @@ Increase the distance between [Minimum] and [Maximum] to allow reliable arcsine 
 			/// <inheritdoc/>
 			public override int GetHashCode() =>
 				HashCode.Combine(Minimum, Maximum, TimeUnit, Power, Reverse);
+		}
+
+		/// <summary>
+		/// Represents configuration for generating delays based on a Beta distribution.
+		/// </summary>
+		/// <remarks>
+		/// The <see cref="Beta"/> class allows configuring:
+		/// - Minimum and Maximum delay range,
+		/// - Time unit (e.g., milliseconds, seconds),
+		/// - Alpha (α) and Beta (β) parameters of the Beta distribution.
+		///
+		/// The class validates all settings to ensure they are suitable for generating meaningful random delays.
+		/// Methods such as <see cref="WithAlpha(double)"/> and <see cref="WithBeta(double)"/> follow a fluent API
+		/// pattern and return the instance for chaining. 
+		/// </remarks>
+		public sealed class Beta : DelayOptionsBase<Beta>
+		{
+			/// <summary>
+			/// Internal alpha parameter (α) for the Beta distribution. Must be positive.
+			/// </summary>
+			internal double AlphaValue;
+
+			/// <summary>
+			/// Internal beta parameter (β) for the Beta distribution. Must be positive.
+			/// </summary>
+			internal double BetaValue;
+
+			/// <summary>
+			/// Sets the alpha parameter (α) and returns the current instance for fluent configuration.
+			/// </summary>
+			/// <param name="value">Alpha value. Must be positive.</param>
+			/// <returns>The current <see cref="Beta"/> instance with updated alpha.</returns>
+			public Beta WithAlpha(double value)
+			{
+				AlphaValue = value;
+				return this;
+			}
+
+			/// <summary>
+			/// Sets the beta parameter (β) and returns the current instance for fluent configuration.
+			/// </summary>
+			/// <param name="value">Beta value. Must be positive.</param>
+			/// <returns>The current <see cref="Beta"/> instance with updated beta.</returns>
+			public Beta WithBeta(double value)
+			{
+				BetaValue = value;
+				return this;
+			}
+
+			/// <summary>
+			/// Validates the configuration for logical consistency and usability.
+			/// </summary>
+			/// <exception cref="OptionsValidationException">
+			/// Thrown if any of the following conditions are violated:
+			/// - <see cref="Minimum"/> or <see cref="Maximum"/> are non-finite,
+			/// - <see cref="Minimum"/> > <see cref="Maximum"/>,
+			/// - Range length (<c>Maximum - Minimum</c>) is too small to generate meaningful randomness,
+			/// - <see cref="AlphaValue"/> ≤ 0 or <see cref="BetaValue"/> ≤ 0.
+			/// </exception>
+			public override void Validate()
+			{
+				// Validate base numeric fields (Minimum/Maximum)
+				base.Validate();
+
+				EnsureValidRange();
+				EnsureFinite(AlphaValue);
+				EnsureFinite(BetaValue);
+
+				if (AlphaValue <= 0.0)
+				{
+					throw new OptionsValidationException(this,
+						$"Alpha (α) must be a positive numeric value, but was {AlphaValue}");
+				}
+
+				if (BetaValue <= 0.0)
+				{
+					throw new OptionsValidationException(this,
+						$"Beta (β) must be a positive numeric value, but was {BetaValue}");
+				}
+			}
+
+			/// <summary>
+			/// Determines equality with another <see cref="Beta"/> instance.
+			/// </summary>
+			/// <param name="other">Other <see cref="Beta"/> instance to compare.</param>
+			/// <returns><see langword="true"/> if all relevant fields are equal; otherwise <see langword="false"/>.</returns>
+			public override bool Equals(Beta? other)
+			{
+				return base.Equals(other) &&
+					   other.AlphaValue == AlphaValue &&
+					   other.BetaValue == BetaValue;
+			}
+
+			/// <summary>
+			/// Computes a hash code based on range, time unit, and Beta distribution parameters.
+			/// </summary>
+			/// <returns>A combined hash code.</returns>
+			public override int GetHashCode() =>
+				HashCode.Combine(Minimum, Maximum, TimeUnit, AlphaValue, BetaValue);
 		}
 
 		public sealed class Sequence : DelayOptionsBase<Sequence>

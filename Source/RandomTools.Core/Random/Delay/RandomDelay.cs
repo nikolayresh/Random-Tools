@@ -53,7 +53,7 @@ namespace RandomTools.Core.Random.Delay
 			if (delay <= TimeSpan.Zero)
 				return delay;
 
-			// Convert requested delay to Stopwatch ticks.
+			// Convert delay to Stopwatch ticks for high-precision timing
 			long delayTicks = delay.Ticks * Stopwatch.Frequency / TimeSpan.TicksPerSecond;
 			long endTicks = delayTicks + Stopwatch.GetTimestamp();
 
@@ -64,11 +64,11 @@ namespace RandomTools.Core.Random.Delay
 				// Get remaining ticks
 				long remainingTicks = endTicks - Stopwatch.GetTimestamp();
 
-				// Completed the wait
-				if (remainingTicks <= 0L)
+				// Exit if the delay has elapsed
+				if (remainingTicks <= 0)
 					break;
 
-				// Execute one adaptive spin iteration.
+				// Execute one spin iteration
 				spinner.SpinOnce();
 			}
 

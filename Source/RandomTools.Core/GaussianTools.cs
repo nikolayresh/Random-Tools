@@ -141,7 +141,7 @@
 		/// If a cached value exists, it is used directly to save computation.
 		/// </param>
 		/// <returns>A random value sampled from N(mean, σ²).</returns>
-		public static double NextValue(double mean, double stdDev, ref double? cache)
+		public static double NextNormal(double mean, double stdDev, ref double? cache)
 		{
 			if (stdDev <= double.Epsilon)
 				return mean;
@@ -169,6 +169,29 @@
 			cache = z2;
 
 			return mean + (z1 * stdDev);
+		}
+
+		/// <summary>
+		/// Generates a single random value from the standard normal distribution
+		/// (mean = 0, standard deviation = 1) using the Box-Muller transform.
+		/// </summary>
+		/// <remarks>
+		/// The Box-Muller transform converts two independent uniform random numbers
+		/// in the interval [0,1) into two independent standard normal random numbers.
+		/// This implementation returns only one of them:
+		/// - 'radius' is derived from u1 and determines the distance from the origin in polar coordinates.
+		/// - 'angle' is derived from u2 and determines the direction around the circle.
+		/// </remarks>
+		/// <returns>A standard normal random value (Z ~ N(0,1)).</returns>
+		public static double NextNormal()
+		{
+			double u1 = 1.0 - CoreTools.NextDouble();
+			double u2 = CoreTools.NextDouble();
+
+			double radius = Math.Sqrt(-2.0 * Math.Log(u1));
+			double angle = 2.0 * Math.PI * u2;
+
+			return radius * Math.Cos(angle);
 		}
 	}
 }

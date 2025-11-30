@@ -39,7 +39,7 @@ namespace RandomTools.Core.Random.Delay
 
 			while (true)
 			{
-				double value = GaussianTools.NextValue(mean, stdDev, ref cache);
+				double value = GaussianTools.NextNormal(mean, stdDev, ref cache);
 
 				if (value < Options.Minimum || value > Options.Maximum)
 				{

@@ -152,5 +152,28 @@ namespace RandomTools.Core.Options.Delay
 					$"{name} ({value}) must be a finite numeric value.");
 			}
 		}
+
+		/// <summary>
+		/// Ensures that the configured range is wide enough to produce meaningful random values.
+		/// </summary>
+		/// <remarks>
+		/// The range length is defined as Maximum - Minimum.  
+		/// If the length is too small (≤ double.Epsilon), random generation would yield nearly constant values.
+		/// </remarks>
+		/// <exception cref="OptionsValidationException">
+		/// Thrown if the configured range length is too small to generate meaningful randomness.
+		/// </exception>
+		protected void EnsureValidRange()
+		{
+			double length = Maximum - Minimum;
+
+			if (length <= double.Epsilon)
+			{
+				throw new OptionsValidationException(this,
+					"Configured range is too short to generate meaningful randomness. " +
+					"The 'length' of the interval (Maximum - Minimum) must be greater than zero. " +
+					"Please ensure Maximum is sufficiently larger than Minimum.");
+			}
+		}
 	}
 }
