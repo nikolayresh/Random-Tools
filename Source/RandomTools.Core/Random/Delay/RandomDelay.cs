@@ -41,10 +41,6 @@ namespace RandomTools.Core.Random.Delay
 		/// or sleeps, ensuring the highest possible timing precision at the cost
 		/// of dedicating a full CPU core for the duration of the wait.
 		/// </para>
-		/// <para>
-		/// Recommended only when sub-millisecond accuracy is required and blocking
-		/// the calling thread is acceptable.
-		/// </para>
 		/// </summary>
 		/// <returns>The generated delay that was waited.</returns>
 		public TimeSpan Wait()
@@ -65,7 +61,7 @@ namespace RandomTools.Core.Random.Delay
 				if (now >= endTicks)
 					break;
 
-				// Prevent SpinWait from entering yield/backoff phases.
+				// Prevent SpinWait from entering yield/backoff phases
 				if (spinner.NextSpinWillYield)
 					spinner.Reset();
 

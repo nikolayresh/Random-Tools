@@ -1,9 +1,4 @@
 ﻿using RandomTools.Core.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RandomTools.Core.Exceptions
 {
@@ -11,7 +6,9 @@ namespace RandomTools.Core.Exceptions
 	{
 		protected const string AppName = "Random-Tools";
 
-		protected RandomToolException(IOptionsBase options, string? message) : base(message) 
+#pragma warning disable IDE0290
+		protected RandomToolException(IOptionsBase options, string? message) : base(message)
+#pragma warning restore IDE0290
 		{
 			Options = options;
 		}

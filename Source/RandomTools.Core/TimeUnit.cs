@@ -1,22 +1,22 @@
 ﻿namespace RandomTools.Core
 {
 	/// <summary>
-	/// Represents units of time for configuring delays or durations.
+	/// Specifies units of time for delays or durations.
 	/// </summary>
 	public enum TimeUnit
 	{
 		/// <summary>
-		/// Milliseconds (1/1000 of a second).
+		/// Represents milliseconds (1/1,000 of a second).
 		/// </summary>
 		Millisecond,
 
 		/// <summary>
-		/// Seconds.
+		/// Represents seconds.
 		/// </summary>
 		Second,
 
 		/// <summary>
-		/// Minutes.
+		/// Represents minutes.
 		/// </summary>
 		Minute
 	}
