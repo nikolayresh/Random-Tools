@@ -21,13 +21,19 @@ namespace RandomTools.Core.Random.Delay
 		/// <returns>A <see cref="TimeSpan"/> representing the next randomized delay.</returns>
 		public override TimeSpan Next()
 		{
-			// Sample two independent Gamma-distributed values for the Beta fraction
-			double gammaAlpha = GammaTools.NextGamma(Options.AlphaValue, 1.0);
-			double gammaBeta = GammaTools.NextGamma(Options.BetaValue, 1.0);
+			double gAlpha;
+			double gBeta;
+
+			do
+			{
+				gAlpha = GammaTools.NextGamma(Options.AlphaValue, 1.0);
+				gBeta = GammaTools.NextGamma(Options.BetaValue, 1.0);
+			}
+			while ((gAlpha + gBeta) == 0.0);
 
 			// Compute Beta fraction in [0,1] using the standard relationship:
 			// Beta(α, β) = Gamma(α,1) / (Gamma(α,1) + Gamma(β,1))
-			double betaValue = gammaAlpha / (gammaAlpha + gammaBeta);
+			double betaValue = gAlpha / (gAlpha + gBeta);
 
 			// Scale the Beta fraction to the user-defined interval [Minimum, Maximum]
 			double scaled = ScaleToRange(betaValue);

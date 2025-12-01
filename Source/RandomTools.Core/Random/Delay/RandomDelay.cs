@@ -5,70 +5,70 @@ using System.Runtime.CompilerServices;
 namespace RandomTools.Core.Random.Delay
 {
 	/// <summary>
-	/// Base class for generating random delays represented as <see cref="TimeSpan"/>.
+	/// Base class for generating random delays expressed as <see cref="TimeSpan"/>.
 	/// <para>
-	/// Provides both synchronous and asynchronous wait mechanisms. 
-	/// The synchronous method implements a high-precision spin-wait using 
-	/// <see cref="Stopwatch"/> for time measurement and <see cref="SpinWait"/> 
-	/// for CPU-side delay control.
+	/// Provides synchronous and asynchronous waiting mechanisms. 
+	/// The synchronous version implements a high-precision CPU-bound wait using
+	/// <see cref="SpinWait"/> and <see cref="Stopwatch"/> for accurate timing.
 	/// </para>
 	/// <para>
-	/// Derived classes define the underlying random distribution by supplying 
-	/// <typeparamref name="TOptions"/>, and obtain delay values through
-	/// the inherited <see cref="RandomBase{TResult, TOptions}.Next"/> method.
+	/// Derived types define the underlying distribution through the supplied
+	/// <typeparamref name="TOptions"/> and obtain delay values via
+	/// <see cref="RandomBase{TResult, TOptions}.Next"/>.
 	/// </para>
 	/// </summary>
 	/// <typeparam name="TOptions">
-	/// Options controlling the delay generation logic.
-	/// Must inherit from <see cref="DelayOptionsBase{TOptions}"/>.
+	/// Configuration type controlling delay generation. Must inherit from
+	/// <see cref="DelayOptionsBase{TOptions}"/>.
 	/// </typeparam>
 	public abstract class RandomDelay<TOptions> : RandomBase<TimeSpan, TOptions>
 		where TOptions : DelayOptionsBase<TOptions>
 	{
 		/// <summary>
-		/// Initializes a new <see cref="RandomDelay{TOptions}"/> instance with the specified options.
+		/// Initializes a new <see cref="RandomDelay{TOptions}"/> instance 
+		/// with the provided options.
 		/// </summary>
-		/// <param name="options">Configuration that defines the delay range and distribution.</param>
+		/// <param name="options">The delay configuration.</param>
 #pragma warning disable IDE0290
 		protected RandomDelay(TOptions options) : base(options) { }
 #pragma warning restore IDE0290
 
 		/// <summary>
-		/// Performs a synchronous wait for a randomly generated duration.
+		/// Performs a synchronous wait for a randomly generated delay.
 		/// <para>
-		/// Uses a strictly CPU-bound spin-loop driven by <see cref="SpinWait"/>.
-		/// This method never calls <see cref="Thread.Sleep(int)"/> and never yields 
-		/// the thread voluntarily, providing the highest possible timing precision.
+		/// This method uses a tight spin-loop backed by <see cref="SpinWait"/>
+		/// and timestamp comparisons via <see cref="Stopwatch"/>. It never yields 
+		/// or sleeps, ensuring the highest possible timing precision at the cost
+		/// of dedicating a full CPU core for the duration of the wait.
 		/// </para>
 		/// <para>
-		/// Because spin-waiting consumes an entire CPU core for the duration 
-		/// of the wait, this method should only be used when blocking the calling 
-		/// thread is acceptable and precise sub-millisecond timing matters.
+		/// Recommended only when sub-millisecond accuracy is required and blocking
+		/// the calling thread is acceptable.
 		/// </para>
 		/// </summary>
-		/// <returns>The generated <see cref="TimeSpan"/> that was waited.</returns>
+		/// <returns>The generated delay that was waited.</returns>
 		public TimeSpan Wait()
 		{
 			TimeSpan delay = Next();
 			if (delay <= TimeSpan.Zero)
 				return delay;
 
-			// Convert delay to Stopwatch ticks for high-precision timing
-			long delayTicks = delay.Ticks * Stopwatch.Frequency / TimeSpan.TicksPerSecond;
-			long endTicks = delayTicks + Stopwatch.GetTimestamp();
+			// High-precision conversion
+			double delaySeconds = delay.Ticks / (double)TimeSpan.TicksPerSecond;
+			long endTicks = ((long)(delaySeconds * Stopwatch.Frequency)) + Stopwatch.GetTimestamp();
 
 			SpinWait spinner = new();
 
 			while (true)
 			{
-				// Get remaining ticks
-				long remainingTicks = endTicks - Stopwatch.GetTimestamp();
-
-				// Exit if the delay has elapsed
-				if (remainingTicks <= 0)
+				long now = Stopwatch.GetTimestamp();
+				if (now >= endTicks)
 					break;
 
-				// Execute one spin iteration
+				// Prevent SpinWait from entering yield/backoff phases.
+				if (spinner.NextSpinWillYield)
+					spinner.Reset();
+
 				spinner.SpinOnce();
 			}
 
@@ -76,16 +76,16 @@ namespace RandomTools.Core.Random.Delay
 		}
 
 		/// <summary>
-		/// Performs an asynchronous wait for a randomly generated duration.
+		/// Performs an asynchronous wait for a randomly generated delay.
 		/// <para>
-		/// Uses <see cref="Task.Delay(TimeSpan, CancellationToken)"/> to avoid blocking
-		/// the calling thread. This is the preferred option for asynchronous or 
-		/// high-concurrency environments, as it introduces no CPU load.
+		/// Uses <see cref="Task.Delay(TimeSpan, CancellationToken)"/> and therefore
+		/// does not block the thread or consume CPU resources. This is the preferred 
+		/// method in asynchronous or high-concurrency scenarios.
 		/// </para>
 		/// </summary>
-		/// <param name="cancellationToken">Optional token that can cancel the wait.</param>
+		/// <param name="cancellationToken">Optional token used to cancel the operation.</param>
 		/// <returns>
-		/// A task that completes after the generated delay or when the operation is canceled.
+		/// A task that completes after the generated delay or when cancellation is requested.
 		/// </returns>
 		public async Task<TimeSpan> WaitAsync(CancellationToken cancellationToken = default)
 		{
@@ -101,17 +101,17 @@ namespace RandomTools.Core.Random.Delay
 		}
 
 		/// <summary>
-		/// Maps a normalized value in the [0, 1] range to the configured delay range
+		/// Maps a normalized value in the [0, 1] interval to the configured delay range
 		/// <see cref="Options.Minimum"/>–<see cref="Options.Maximum"/>.
 		/// <para>
-		/// Uses <see cref="Math.FusedMultiplyAdd(double, double, double)"/> to maximize
-		/// numerical precision during interpolation.
+		/// Uses <see cref="Math.FusedMultiplyAdd(double, double, double)"/> to perform
+		/// the interpolation with minimal rounding error.
 		/// </para>
 		/// </summary>
-		/// <param name="factor">A normalized interpolation factor between 0.0 and 1.0.</param>
-		/// <returns>A linearly scaled value within the configured delay range.</returns>
+		/// <param name="factor">A normalized factor between 0.0 and 1.0.</param>
+		/// <returns>A value linearly interpolated within the configured range.</returns>
 		/// <exception cref="ArgumentOutOfRangeException">
-		/// Thrown if <paramref name="factor"/> lies outside the [0, 1] interval.
+		/// Thrown when <paramref name="factor"/> is outside the [0, 1] range.
 		/// </exception>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		protected double ScaleToRange(double factor)
