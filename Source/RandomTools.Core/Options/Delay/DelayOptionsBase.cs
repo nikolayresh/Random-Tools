@@ -92,6 +92,17 @@ namespace RandomTools.Core.Options.Delay
 		}
 
 		/// <summary>
+		/// Creates a shallow copy of the current options instance.
+		/// </summary>
+		/// <remarks>The cloned object will have the same values as the original instance, but changes to
+		/// reference-type fields or properties in the clone will affect the original instance, and vice versa.</remarks>
+		/// <returns>A new instance of the current object, cast to <see cref="IOptionsBase"/>.</returns>
+		public virtual IOptionsBase Clone()
+		{
+			return (IOptionsBase)MemberwiseClone();
+		}
+
+		/// <summary>
 		/// Determines equality with another object.
 		/// Returns false if null or type differs, true if same reference, otherwise calls <see cref="Equals(TDelayOptions?)"/>.
 		/// </summary>
@@ -111,18 +122,25 @@ namespace RandomTools.Core.Options.Delay
 		/// </summary>
 		/// <param name="other">Instance to compare.</param>
 		/// <returns>True if all base fields are equal; otherwise false.</returns>
-		public virtual bool Equals(TDelayOptions? other) =>
-			other != null &&
-			other.Minimum == Minimum &&
-			other.Maximum == Maximum &&
-			other.TimeUnit == TimeUnit;
+		public virtual bool Equals(TDelayOptions? other)
+		{
+			if (other is null)
+				return false;
+
+			var comparer = EqualityComparer<double>.Default;
+
+			return
+				comparer.Equals(other.Minimum, Minimum) &&
+				comparer.Equals(other.Maximum, Maximum) &&
+				other.TimeUnit == TimeUnit;
+		}
 
 		/// <summary>
 		/// Returns a hash code based on the base fields.
 		/// Derived classes should override if they add new fields affecting equality.
 		/// </summary>
 		public override int GetHashCode() =>
-			HashCode.Combine(Minimum, Maximum, (int)TimeUnit);
+			HashCode.Combine(Minimum, Maximum, TimeUnit);
 
 		/// <summary>
 		/// Ensures a numeric value is finite.

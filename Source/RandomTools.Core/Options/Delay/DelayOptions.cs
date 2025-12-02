@@ -16,7 +16,6 @@ namespace RandomTools.Core.Options.Delay
 		/// </summary>
 		public sealed class Uniform : DelayOptionsBase<Uniform>
 		{
-			// 
 		}
 
 		/// <summary>
@@ -126,7 +125,7 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			public override int GetHashCode() =>
-				HashCode.Combine(Minimum, Maximum, (int)TimeUnit, Mean, StandardDeviation);
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Mean, StandardDeviation);
 		}
 
 		/// <summary>
@@ -163,8 +162,7 @@ namespace RandomTools.Core.Options.Delay
 				// Check that the mode lies within the defined [Minimum, Maximum] range
 				if (Mode < Minimum || Mode > Maximum)
 				{
-					throw new OptionsValidationException(
-						this,
+					throw new OptionsValidationException(this,
 						$"Mode ({Mode}) must lie within the range [{Minimum}, {Maximum}]"
 					);
 				}
@@ -186,7 +184,7 @@ namespace RandomTools.Core.Options.Delay
 			/// </summary>
 			/// <returns>A combined hash code of the relevant properties.</returns>
 			public override int GetHashCode() =>
-				HashCode.Combine(Minimum, Maximum, (int)TimeUnit, Mode);
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Mode);
 		}
 
 		/// <summary>
@@ -257,7 +255,7 @@ namespace RandomTools.Core.Options.Delay
 
 			/// <inheritdoc />
 			public override int GetHashCode() =>
-				HashCode.Combine(Minimum, Maximum, (int)TimeUnit, Samples);
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Samples);
 		}
 
 		/// <summary>
@@ -333,7 +331,7 @@ namespace RandomTools.Core.Options.Delay
 
 			/// <inheritdoc/>
 			public override int GetHashCode() =>
-				HashCode.Combine(Minimum, Maximum, (int)TimeUnit, Power, Reverse);
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Power, Reverse);
 		}
 
 		/// <summary>
@@ -431,7 +429,7 @@ namespace RandomTools.Core.Options.Delay
 			/// </summary>
 			/// <returns>A combined hash code.</returns>
 			public override int GetHashCode() =>
-				HashCode.Combine(Minimum, Maximum, (int)TimeUnit, AlphaValue, BetaValue);
+				HashCode.Combine(Minimum, Maximum, TimeUnit, AlphaValue, BetaValue);
 		}
 
 		public sealed class Sequence : DelayOptionsBase<Sequence>
@@ -499,7 +497,7 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			public override int GetHashCode() =>
-				HashCode.Combine(Minimum, Maximum, (int)TimeUnit, Values);
+				HashCode.Combine(Minimum, Maximum, TimeUnit, Values);
 		}
 	}
 }

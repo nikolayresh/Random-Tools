@@ -16,5 +16,11 @@
 		/// Thrown when the option values are invalid or inconsistent.
 		/// </exception>
 		void Validate();
+
+		/// <summary>
+		/// Creates a new instance of the options object with the same settings as the current instance.
+		/// </summary>
+		/// <returns>A new <see cref="IOptionsBase"/> instance that is a copy of the current object.</returns>
+		IOptionsBase Clone();
 	}
 }

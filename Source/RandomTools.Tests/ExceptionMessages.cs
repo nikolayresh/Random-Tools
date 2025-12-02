@@ -10,9 +10,6 @@
 	/// </remarks>
 	internal static class ExceptionMessages
 	{
-		public static string Minimum => nameof(Minimum);
-		public static string Maximum => nameof(Maximum);
-
 		/// <summary>
 		/// Message used when a delay range is invalid or too narrow to be meaningful.
 		/// </summary>

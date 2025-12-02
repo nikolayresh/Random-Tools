@@ -3,18 +3,20 @@
 namespace RandomTools.Core.Exceptions
 {
 	/// <summary>
-	/// Represents an error that occurs when an options object implementing <see cref="IOptionsBase"/>
-	/// is in an invalid state or fails validation.
+	/// Exception thrown when an <see cref="IOptionsBase"/> instance contains invalid
+	/// or inconsistent configuration values.
 	/// </summary>
-	/// <remarks>
-	/// This exception can be thrown by any class implementing <see cref="IOptionsBase"/> 
-	/// to indicate that its configuration is invalid, inconsistent, or violates constraints.
-	/// Examples include missing required values, invalid combinations of settings, or 
-	/// attempts to generate output that is impossible given the current configuration.
-	/// </remarks>
-	public class OptionsValidationException : RandomToolException
+	public sealed class OptionsValidationException : RandomToolException
 	{
+#pragma warning disable IDE0290
+		/// <summary>
+		/// Initializes a new instance of the <see cref="OptionsValidationException"/> class
+		/// using the specified invalid options and a descriptive error message.
+		/// </summary>
+		/// <param name="options">The options object that failed validation.</param>
+		/// <param name="message">A message describing the validation error.</param>
 		public OptionsValidationException(IOptionsBase options, string? message)
 			: base(options, message) { }
+#pragma warning restore IDE0290
 	}
 }

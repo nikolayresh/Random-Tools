@@ -87,6 +87,11 @@ namespace RandomTools.Core.Options
 			}
 		}
 
+		public IOptionsBase Clone() => new BoolOptions
+		{
+			Bias = Bias
+		};
+
 		public override bool Equals(object? obj) => Equals(obj as BoolOptions);
 
 		public bool Equals(BoolOptions? other) =>

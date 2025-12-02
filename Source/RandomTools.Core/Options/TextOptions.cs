@@ -59,7 +59,7 @@ namespace RandomTools.Core.Options
 			return this;
 		}
 
-		public override bool Equals(object? obj) => Equals(obj as TextOptions);
+		public override bool Equals(object? obj) => obj is TextOptions options && Equals(options);
 
 		public void Validate()
 		{
@@ -85,6 +85,18 @@ namespace RandomTools.Core.Options
 						$"Invalid configuration: requested length {Length} exceeds maximum unique characters {maxLength} based on selected sets");
 				}
 			}
+		}
+
+		public IOptionsBase Clone()
+		{
+			return new TextOptions
+			{
+				Length = Length,
+				LowerLetters = LowerLetters,
+				UpperLetters = UpperLetters,
+				Digits = Digits,
+				IsUnique = IsUnique
+			};
 		}
 
 		public bool Equals(TextOptions? other) =>

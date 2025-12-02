@@ -17,7 +17,7 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
 			ex.Message.Should().Contain(ExceptionMessages.RangeIsTooShort);
 		}
 
@@ -33,8 +33,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain(ExceptionMessages.Minimum, ExceptionMessages.Value(value, true));
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(Keywords.Minimum, ExceptionMessages.Value(value, true));
 		}
 
 		[Test]
@@ -49,15 +49,15 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().ContainAll(ExceptionMessages.Maximum, ExceptionMessages.Value(value, true));
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(Keywords.Maximum, ExceptionMessages.Value(value, true));
 		}
 
 		[Test]
 		public void When_Minimum_Is_GreaterThan_Maximum_Should_Throw_On_Validate()
 		{
-			const double min = 17.42;
-			const double max = 12.90;
+			const double min = 48.25;
+			const double max = 30.75;
 
 			var options = new DelayOptions.Bates()
 				.WithMinimum(min)
@@ -68,7 +68,10 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(Keywords.Minimum, Keywords.Maximum, 
+				ExceptionMessages.Value(min, true),
+				ExceptionMessages.Value(max, true));
 		}
 	}
 }

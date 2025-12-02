@@ -15,6 +15,8 @@
 			// No validation required
 		}
 
+		public IOptionsBase Clone() => new NullOptions();
+
 		/// <summary>
 		/// Returns a constant hash code.
 		/// </summary>
