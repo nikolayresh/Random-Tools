@@ -247,11 +247,9 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			/// <inheritdoc />
-			public override bool Equals(Bates? other)
-			{
-				return base.Equals(other) &&
-					   other.Samples == Samples;
-			}
+			public override bool Equals(Bates? other) => 
+				base.Equals(other) &&
+			    other.Samples == Samples;
 
 			/// <inheritdoc />
 			public override int GetHashCode() =>

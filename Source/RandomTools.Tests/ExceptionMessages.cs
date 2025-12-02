@@ -21,7 +21,7 @@
 		/// <param name="value">The value to format. Can be <c>null</c>.</param>
 		/// <param name="enclosed">If <c>true</c>, the output is wrapped in parentheses.</param>
 		/// <returns>The formatted string, or <c>null</c> if <paramref name="value"/> is <c>null</c>.</returns>
-		public static string? Value(object value, bool enclosed) =>
+		public static string? Format(object value, bool enclosed) =>
 			enclosed ? $"({value})" : value.ToString();
 	}
 }
