@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using RandomTools.Core;
 using RandomTools.Core.Exceptions;
 using RandomTools.Core.Options;
 using RandomTools.Core.Options.Delay;
@@ -35,9 +36,9 @@ namespace RandomTools.Tests.Options
 				.WithSamples(samples);
 
 			IOptionsBase? clonedOptions = null;
-			Action act = () => clonedOptions = options.Clone();
+			Action action = () => clonedOptions = options.Clone();
 
-			act.Should().NotThrow();
+			action.Should().NotThrow();
 			clonedOptions.Should().NotBeNull().And.BeOfType<DelayOptions.Bates>();
 			clonedOptions.Should().Be(options).And.NotBeSameAs(options);
 		}
@@ -206,6 +207,25 @@ namespace RandomTools.Tests.Options
 
 			exists.Should().BeTrue();
 			actualValue.Should().BeSameAs(expectedValue);
+		}
+
+		[Test]
+		[TestCaseSource(typeof(ValuesProvider), nameof(ValuesProvider.TimeUnits))]
+		public void When_Valid_Options_Provided_Should_Not_Throw_On_Validate(TimeUnit unit)
+		{
+			const double min = 300.0;
+			const double max = 600.0;
+			const int samples = 5;
+
+			var options = new DelayOptions.Bates()
+				.WithTimeUnit(unit)
+				.WithMinimum(min)
+				.WithMaximum(max)
+				.WithSamples(samples);
+
+			options.Invoking(opt => opt.Validate())
+				.Should()
+				.NotThrow<OptionsValidationException>();
 		}
 	}
 }

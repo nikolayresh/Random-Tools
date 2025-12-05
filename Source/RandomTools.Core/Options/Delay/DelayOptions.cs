@@ -242,7 +242,8 @@ namespace RandomTools.Core.Options.Delay
 				if (Samples < 1)
 				{
 					throw new OptionsValidationException(this,
-						$"Samples ({Samples}) must be at least 1 to produce meaningful Bates distribution sampling.");
+						$"Samples ({Samples}) must be at least 1 to produce meaningful Bates distribution sampling."
+					);
 				}
 			}
 

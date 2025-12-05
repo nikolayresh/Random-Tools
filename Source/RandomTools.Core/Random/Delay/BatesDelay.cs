@@ -17,16 +17,14 @@ namespace RandomTools.Core.Random.Delay
 	/// </summary>
 	public sealed class BatesDelay : RandomDelay<DelayOptions.Bates>
 	{
-#pragma warning disable IDE0290 // Use primary constructor
+#pragma warning disable IDE0290
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BatesDelay"/> class
 		/// with the specified <see cref="DelayOptions.Bates"/>.
 		/// </summary>
 		/// <param name="options">Configuration options for the Bates distribution.</param>
-		public BatesDelay(DelayOptions.Bates options) : base(options)
-#pragma warning restore IDE0290 // Use primary constructor
-		{
-		}
+		public BatesDelay(DelayOptions.Bates options) : base(options) { }
+#pragma warning restore IDE0290
 
 		/// <summary>
 		/// Generates the next random delay based on the configured Bates distribution.

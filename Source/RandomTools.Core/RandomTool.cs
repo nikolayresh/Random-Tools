@@ -419,44 +419,104 @@ namespace RandomTools.Core
 					InMinutes(mean, stdDev, range.Min, range.Max);
 			}
 
-			public static class Triangular
+			/// <summary>
+			/// Factory class for generating and caching <see cref="BatesDelay"/> instances.
+			/// <para>
+			/// The Bates distribution represents the arithmetic mean of N independent uniform samples
+			/// within a configured minimum and maximum range. This factory provides convenient methods
+			/// to obtain a <see cref="BatesDelay"/> for different time units while caching instances
+			/// for reuse.
+			/// </para>
+			/// <para>
+			/// All configuration validation is performed by <see cref="DelayOptions.Bates.Validate()"/>.
+			/// </para>
+			/// </summary>
+			public static class Bates
 			{
-				private static readonly ConcurrentDictionary<DelayOptions.Triangular, TriangularDelay> sCache = new();
+				/// <summary>
+				/// Thread-safe cache for storing <see cref="BatesDelay"/> instances keyed by their options.
+				/// Ensures that multiple requests with identical configuration return the same instance.
+				/// </summary>
+				private static readonly ConcurrentDictionary<DelayOptions.Bates, BatesDelay> sCache = new();
 
-				public static TriangularDelay InMilliseconds(double minimum, double maximum, double mode)
+				/// <summary>
+				/// Returns a cached <see cref="BatesDelay"/> configured with the specified minimum, maximum,
+				/// number of samples, and time unit.
+				/// </summary>
+				/// <param name="minimum">The minimum delay value.</param>
+				/// <param name="maximum">The maximum delay value.</param>
+				/// <param name="samples">Number of uniform samples to average for the Bates distribution.</param>
+				/// <param name="unit">Time unit in which the delay will be expressed.</param>
+				public static BatesDelay For(double minimum, double maximum, int samples, TimeUnit unit)
 				{
-					var options = new DelayOptions.Triangular()
-						.WithTimeUnit(TimeUnit.Millisecond)
+					var options = new DelayOptions.Bates()
+						.WithTimeUnit(unit)
 						.WithMinimum(minimum)
 						.WithMaximum(maximum)
-						.WithMode(mode);
+						.WithSamples(samples);
 
-					return sCache.GetOrAdd(options,
-						_ => new TriangularDelay(options));
-				}
-				public static TriangularDelay InSeconds(double minimum, double maximum, double mode)
-				{
-					var options = new DelayOptions.Triangular()
-						.WithTimeUnit(TimeUnit.Second)
-						.WithMinimum(minimum)
-						.WithMaximum(maximum)
-						.WithMode(mode);
-
-					return sCache.GetOrAdd(options,
-						_ => new TriangularDelay(options));
+					return sCache.GetOrAdd(options, 
+						_ => new BatesDelay(options));
 				}
 
-				public static TriangularDelay InMinutes(double minimum, double maximum, double mode)
-				{
-					var options = new DelayOptions.Triangular()
-						.WithTimeUnit(TimeUnit.Minute)
-						.WithMinimum(minimum)
-						.WithMaximum(maximum)
-						.WithMode(mode);
+				/// <summary>
+				/// Returns a cached <see cref="BatesDelay"/> configured for millisecond delays.
+				/// </summary>
+				public static BatesDelay Milliseconds(double minimum, double maximum, int samples) =>
+					For(minimum, maximum, samples, TimeUnit.Millisecond);
 
-					return sCache.GetOrAdd(options,
-						_ => new TriangularDelay(options));
-				}
+				/// <summary>
+				/// Returns a cached <see cref="BatesDelay"/> configured for second delays.
+				/// </summary>
+				public static BatesDelay Seconds(double minimum, double maximum, int samples) =>
+					For(minimum, maximum, samples, TimeUnit.Second);
+
+				/// <summary>
+				/// Returns a cached <see cref="BatesDelay"/> configured for minute delays.
+				/// </summary>
+				public static BatesDelay Minutes(double minimum, double maximum, int samples) =>
+					For(minimum, maximum, samples, TimeUnit.Minute);
+			}
+		}
+
+		public static class Triangular
+		{
+			private static readonly ConcurrentDictionary<DelayOptions.Triangular, TriangularDelay> sCache = new();
+
+			public static TriangularDelay InMilliseconds(double minimum, double maximum, double mode)
+			{
+				var options = new DelayOptions.Triangular()
+					.WithTimeUnit(TimeUnit.Millisecond)
+					.WithMinimum(minimum)
+					.WithMaximum(maximum)
+					.WithMode(mode);
+
+				return sCache.GetOrAdd(options,
+					_ => new TriangularDelay(options));
+			}
+
+			public static TriangularDelay InSeconds(double minimum, double maximum, double mode)
+			{
+				var options = new DelayOptions.Triangular()
+					.WithTimeUnit(TimeUnit.Second)
+					.WithMinimum(minimum)
+					.WithMaximum(maximum)
+					.WithMode(mode);
+
+				return sCache.GetOrAdd(options,
+					_ => new TriangularDelay(options));
+			}
+
+			public static TriangularDelay InMinutes(double minimum, double maximum, double mode)
+			{
+				var options = new DelayOptions.Triangular()
+					.WithTimeUnit(TimeUnit.Minute)
+					.WithMinimum(minimum)
+					.WithMaximum(maximum)
+					.WithMode(mode);
+
+				return sCache.GetOrAdd(options,
+					_ => new TriangularDelay(options));
 			}
 		}
 	}
