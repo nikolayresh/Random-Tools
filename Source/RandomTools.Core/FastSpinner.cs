@@ -21,7 +21,7 @@
 			if (threshold <= 0 || threshold > 30)
 			{
 				throw new ArgumentOutOfRangeException(nameof(threshold),
-					"Threshold must be between 1 and 30 to prevent overflow with 1 << _count");
+					"Threshold must be between 1 and 30 to prevent overflow with: 1 << _count.");
 			}
 
 			_threshold = threshold;
@@ -34,20 +34,18 @@
 		/// </summary>
 		public void SpinOnce()
 		{
+			// Spin intensity doubles each step
 			Thread.SpinWait(1 << _count);
 
 			_count++;
-			// Reset counter when it hits the threshold
-			if (_count >= _threshold)
+			// Reset the counter when it exceeds the threshold
+			if (_count > _threshold)
 				_count = 0;
 		}
 
 		/// <summary>
 		/// Resets the spinner counter to 0.
 		/// </summary>
-		public void Reset()
-		{
-			_count = 0;
-		}
+		public void Reset() => _count = 0;
 	}
 }

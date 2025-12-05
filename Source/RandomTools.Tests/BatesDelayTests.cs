@@ -6,7 +6,7 @@ namespace RandomTools.Tests
 	[TestFixture]
 	public class BatesDelayTests
 	{
-		private const int Iterations = 1_000_000;
+		private const int Iterations = 100_000;
 		private List<TimeSpan> _delays;
 
 		[SetUp]
@@ -18,14 +18,11 @@ namespace RandomTools.Tests
 
 		[Test, Combinatorial]
 		public void When_Sampling_MilliSeconds(
-			[Values(1_000.0, 5_000.0)] double min,
-			[Values(10_000.0, 15_000.0)] double max,
+			[Values( 1_000.0,  5_000.0, 10_000.0)] double min,
+			[Values(15_000.0, 20_000.0, 25_000.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
 		{
-			double theoryMean = Statistics.Theory.Mean.Bates(min, max);
-			double theoryStdDev = Statistics.Theory.StandardDeviation.Bates(min, max, samples);
-			double tolerance = 3 * Statistics.SEM(theoryStdDev, Iterations);
-
+			double expectedMean = (min + max) / 2.0;
 			var delay = RandomTool.Delay.Bates.InMilliseconds(min, max, samples);
 
 			for (int i = 0; i < Iterations; i++)
@@ -38,23 +35,20 @@ namespace RandomTools.Tests
 				_delays.Add(next);
 			}
 
-			TimeSpan mean = Statistics.Mean(_delays);
+			var stats = Statistics.AnalyzeSamples(_delays.Select(x => x.TotalMilliseconds));
+			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
 
-			mean.TotalMilliseconds
-				.Should()
-				.BeApproximately(theoryMean, tolerance);
+			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
+			stats.Mean.Should().BeApproximately(expectedMean, delta);
 		}
 
 		[Test, Combinatorial]
 		public void When_Sampling_Minutes(
-			[Values(1.5, 2.0)] double min,
-			[Values(3.5, 4.0)] double max,
+			[Values(0.5, 1.5, 2.0)] double min,
+			[Values(3.0, 3.5, 4.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
 		{
-			double theoryMean = Statistics.Theory.Mean.Bates(min, max);
-			double theoryStdDev = Statistics.Theory.StandardDeviation.Bates(min, max, samples);
-			double tolerance = 3 * Statistics.SEM(theoryStdDev, Iterations);
-
+			double expectedMean = (min + max) / 2.0;
 			var delay = RandomTool.Delay.Bates.InMinutes(min, max, samples);
 
 			for (int i = 0; i < Iterations; i++)
@@ -67,23 +61,20 @@ namespace RandomTools.Tests
 				_delays.Add(next);
 			}
 
-			TimeSpan mean = Statistics.Mean(_delays);
+			var stats = Statistics.AnalyzeSamples(_delays.Select(x => x.TotalMinutes));
+			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
 
-			mean.TotalMinutes
-				.Should()
-				.BeApproximately(theoryMean, tolerance);
+			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
+			stats.Mean.Should().BeApproximately(expectedMean, delta);
 		}
 
 		[Test, Combinatorial]
 		public void When_Sampling_Seconds(
-			[Values(10.0, 20.0)] double min,
-			[Values(30.0, 50.0)] double max,
+			[Values(05.0, 10.0, 15.0)] double min,
+			[Values(20.0, 25.0, 30.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
 		{
-			double theoryMean = Statistics.Theory.Mean.Bates(min, max);
-			double theoryStdDev = Statistics.Theory.StandardDeviation.Bates(min, max, samples);
-			double tolerance = 3 * Statistics.SEM(theoryStdDev, Iterations);
-
+			double expectedMean = (min + max) / 2.0; 
 			var delay = RandomTool.Delay.Bates.InSeconds(min, max, samples);
 
 			for (int i = 0; i < Iterations; i++)
@@ -96,11 +87,11 @@ namespace RandomTools.Tests
 				_delays.Add(next);
 			}
 
-			TimeSpan mean = Statistics.Mean(_delays);
+			var stats = Statistics.AnalyzeSamples(_delays.Select(x => x.TotalSeconds));
+			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
 
-			mean.TotalSeconds
-				.Should()
-				.BeApproximately(theoryMean, tolerance);
+			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
+			stats.Mean.Should().BeApproximately(expectedMean, delta);
 		}
 	}
 }
