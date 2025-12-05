@@ -35,7 +35,7 @@ namespace RandomTools.Tests
 				_delays.Add(next);
 			}
 
-			var stats = Statistics.AnalyzeSamples(_delays.Select(x => x.TotalMilliseconds));
+			var stats = Statistics.Analyze(_delays.Select(x => x.TotalMilliseconds));
 			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
 
 			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
@@ -61,7 +61,7 @@ namespace RandomTools.Tests
 				_delays.Add(next);
 			}
 
-			var stats = Statistics.AnalyzeSamples(_delays.Select(x => x.TotalMinutes));
+			var stats = Statistics.Analyze(_delays.Select(x => x.TotalMinutes));
 			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
 
 			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
@@ -87,7 +87,7 @@ namespace RandomTools.Tests
 				_delays.Add(next);
 			}
 
-			var stats = Statistics.AnalyzeSamples(_delays.Select(x => x.TotalSeconds));
+			var stats = Statistics.Analyze(_delays.Select(x => x.TotalSeconds));
 			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
 
 			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);

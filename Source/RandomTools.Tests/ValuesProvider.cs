@@ -31,7 +31,7 @@ namespace RandomTools.Tests
 		/// <returns>An <see cref="IEnumerable{T}"/> containing all values of the <see cref="TimeUnit"/> enumeration.</returns>
 		public static IEnumerable<TimeUnit> TimeUnits()
 		{
-			foreach (var unit in Enum.GetValues<TimeUnit>())
+			foreach (TimeUnit unit in Enum.GetValues<TimeUnit>())
 			{
 				yield return unit;
 			}

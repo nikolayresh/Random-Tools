@@ -103,7 +103,8 @@ namespace RandomTools.Tests
 		{
 			Action action = () => new RandomBool(new BoolOptions().WithBias(0));
 
-			action.Should().Throw<OptionsValidationException>()
+			action.Should()
+				.Throw<OptionsValidationException>()
 				.Which.Message
 				.Should().Contain($"Actual value: {0:G}");
 		}
@@ -116,7 +117,8 @@ namespace RandomTools.Tests
 		{
 			Action action = () => new RandomBool(new BoolOptions().WithBias(bias));
 
-			action.Should().Throw<OptionsValidationException>()
+			action.Should()
+				.Throw<OptionsValidationException>()
 				.Which.Message
 				.Should().Contain($"Actual value: {bias:G}");
 		}
@@ -126,7 +128,8 @@ namespace RandomTools.Tests
 		{
 			Action action = () => new RandomBool(new BoolOptions().WithBias(1));
 
-			action.Should().Throw<OptionsValidationException>()
+			action.Should()
+				.Throw<OptionsValidationException>()
 				.Which.Message
 				.Should().Contain($"Actual value: {1:G}");
 		}
@@ -139,7 +142,8 @@ namespace RandomTools.Tests
 		{
 			Action action = () => new RandomBool(new BoolOptions().WithBias(bias));
 
-			action.Should().Throw<OptionsValidationException>()
+			action.Should()
+				.Throw<OptionsValidationException>()
 				.Which.Message
 				.Should().Contain($"Actual value: {bias:G}");
 		}
@@ -149,7 +153,8 @@ namespace RandomTools.Tests
 		{
 			Action action = () => new RandomBool(new BoolOptions());
 
-			action.Should().NotThrow<OptionsValidationException>();
+			action.Should()
+				.NotThrow<OptionsValidationException>();
 		}
 	}
 }
