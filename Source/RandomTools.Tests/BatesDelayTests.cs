@@ -16,48 +16,91 @@ namespace RandomTools.Tests
 			_delays.Clear();
 		}
 
-		[Test, Retry(3)]
+		[Test, Combinatorial]
+		public void When_Sampling_MilliSeconds(
+			[Values(1_000.0, 5_000.0)] double min,
+			[Values(10_000.0, 15_000.0)] double max,
+			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
+		{
+			double theoryMean = Statistics.Theory.Mean.Bates(min, max);
+			double theoryStdDev = Statistics.Theory.StandardDeviation.Bates(min, max, samples);
+			double tolerance = 3 * Statistics.SEM(theoryStdDev, Iterations);
+
+			var delay = RandomTool.Delay.Bates.InMilliseconds(min, max, samples);
+
+			for (int i = 0; i < Iterations; i++)
+			{
+				TimeSpan next = delay.Next();
+				next.TotalMilliseconds
+					.Should()
+					.BeInRange(min, max);
+
+				_delays.Add(next);
+			}
+
+			TimeSpan mean = Statistics.Mean(_delays);
+
+			mean.TotalMilliseconds
+				.Should()
+				.BeApproximately(theoryMean, tolerance);
+		}
+
+		[Test, Combinatorial]
 		public void When_Sampling_Minutes(
 			[Values(1.5, 2.0)] double min,
 			[Values(3.5, 4.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
 		{
-			double midpoint = (min + max) / 2.0;
-			double stdDev = (max - min) / Math.Sqrt(12.0 * samples);
-			double tolerance = 3 * stdDev / Math.Sqrt(Iterations);
+			double theoryMean = Statistics.Theory.Mean.Bates(min, max);
+			double theoryStdDev = Statistics.Theory.StandardDeviation.Bates(min, max, samples);
+			double tolerance = 3 * Statistics.SEM(theoryStdDev, Iterations);
 
-			var delay = RandomTool.Delay.Bates.For(min, max, samples, TimeUnit.Minute);
+			var delay = RandomTool.Delay.Bates.InMinutes(min, max, samples);
 
 			for (int i = 0; i < Iterations; i++)
 			{
-				_delays.Add(delay.Next());
+				TimeSpan next = delay.Next();
+				next.TotalMinutes
+					.Should()
+					.BeInRange(min, max);
+
+				_delays.Add(next);
 			}
 
-			var mean = Statistics.Mean(_delays);
+			TimeSpan mean = Statistics.Mean(_delays);
 
-			mean.TotalMinutes.Should().BeApproximately(midpoint, tolerance);
+			mean.TotalMinutes
+				.Should()
+				.BeApproximately(theoryMean, tolerance);
 		}
 
-		[Test, Retry(3)]
+		[Test, Combinatorial]
 		public void When_Sampling_Seconds(
 			[Values(10.0, 20.0)] double min,
 			[Values(30.0, 50.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
 		{
-			double midpoint = (min + max) / 2.0;
-			double stdDev = (max - min) / Math.Sqrt(12.0 * samples);
-			double tolerance = 3 * stdDev / Math.Sqrt(Iterations);
+			double theoryMean = Statistics.Theory.Mean.Bates(min, max);
+			double theoryStdDev = Statistics.Theory.StandardDeviation.Bates(min, max, samples);
+			double tolerance = 3 * Statistics.SEM(theoryStdDev, Iterations);
 
-			var delay = RandomTool.Delay.Bates.For(min, max, samples, TimeUnit.Second);
+			var delay = RandomTool.Delay.Bates.InSeconds(min, max, samples);
 
 			for (int i = 0; i < Iterations; i++)
 			{
-				_delays.Add(delay.Next());
+				TimeSpan next = delay.Next();
+				next.TotalSeconds
+					.Should()
+					.BeInRange(min, max);
+
+				_delays.Add(next);
 			}
 
-			var mean = Statistics.Mean(_delays);
+			TimeSpan mean = Statistics.Mean(_delays);
 
-			mean.TotalSeconds.Should().BeApproximately(midpoint, tolerance);
+			mean.TotalSeconds
+				.Should()
+				.BeApproximately(theoryMean, tolerance);
 		}
 	}
 }

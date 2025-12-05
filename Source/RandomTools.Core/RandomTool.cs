@@ -462,19 +462,19 @@ namespace RandomTools.Core
 				/// <summary>
 				/// Returns a cached <see cref="BatesDelay"/> configured for millisecond delays.
 				/// </summary>
-				public static BatesDelay Milliseconds(double minimum, double maximum, int samples) =>
+				public static BatesDelay InMilliseconds(double minimum, double maximum, int samples) =>
 					For(minimum, maximum, samples, TimeUnit.Millisecond);
 
 				/// <summary>
 				/// Returns a cached <see cref="BatesDelay"/> configured for second delays.
 				/// </summary>
-				public static BatesDelay Seconds(double minimum, double maximum, int samples) =>
+				public static BatesDelay InSeconds(double minimum, double maximum, int samples) =>
 					For(minimum, maximum, samples, TimeUnit.Second);
 
 				/// <summary>
 				/// Returns a cached <see cref="BatesDelay"/> configured for minute delays.
 				/// </summary>
-				public static BatesDelay Minutes(double minimum, double maximum, int samples) =>
+				public static BatesDelay InMinutes(double minimum, double maximum, int samples) =>
 					For(minimum, maximum, samples, TimeUnit.Minute);
 			}
 		}
