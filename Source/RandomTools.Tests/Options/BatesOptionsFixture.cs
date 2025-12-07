@@ -213,9 +213,9 @@ namespace RandomTools.Tests.Options
 		[TestCaseSource(typeof(ValuesProvider), nameof(ValuesProvider.TimeUnits))]
 		public void When_Valid_Options_Provided_Should_Not_Throw_On_Validate(TimeUnit unit)
 		{
-			const double min = 300.0;
-			const double max = 600.0;
-			const int samples = 5;
+			double min = CoreTools.NextDouble(250, 500);
+			double max = min + CoreTools.NextDouble(200, 400);
+			int samples = CoreTools.NextInt(5, 10);
 
 			var options = new DelayOptions.Bates()
 				.WithTimeUnit(unit)
