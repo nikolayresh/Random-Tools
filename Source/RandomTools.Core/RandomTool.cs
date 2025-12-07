@@ -368,7 +368,7 @@ namespace RandomTools.Core
 				/// Same as <see cref="InMilliseconds(double,double,double,double)"/>  
 				/// but uses seconds as the time unit.
 				/// </summary>
-				public static NormalDelay Seconds(double mean, double stdDev, double min, double max)
+				public static NormalDelay InSeconds(double mean, double stdDev, double min, double max)
 				{
 					var options = new DelayOptions.Normal()
 						.WithTimeUnit(TimeUnit.Second)
@@ -410,7 +410,7 @@ namespace RandomTools.Core
 				/// Tuple-based overload for seconds.
 				/// </summary>
 				public static NormalDelay InSeconds(double mean, double stdDev, (double Min, double Max) range) =>
-					Seconds(mean, stdDev, range.Min, range.Max);
+					InSeconds(mean, stdDev, range.Min, range.Max);
 
 				/// <summary>
 				/// Tuple-based overload for minutes.
@@ -420,33 +420,31 @@ namespace RandomTools.Core
 			}
 
 			/// <summary>
-			/// Factory class for generating and caching <see cref="BatesDelay"/> instances.
+			/// Provides methods to obtain <see cref="BatesDelay"/> instances with caching to reuse identical configurations.
 			/// <para>
-			/// The Bates distribution represents the arithmetic mean of N independent uniform samples
-			/// within a configured minimum and maximum range. This factory provides convenient methods
-			/// to obtain a <see cref="BatesDelay"/> for different time units while caching instances
-			/// for reuse.
+			/// A Bates delay represents the arithmetic mean of <c>samples</c> independent uniform values
+			/// within the specified <c>minimum</c> and <c>maximum</c> range.
 			/// </para>
 			/// <para>
-			/// All configuration validation is performed by <see cref="DelayOptions.Bates.Validate()"/>.
+			/// All configuration is validated via <see cref="DelayOptions.Bates.Validate()"/>.
 			/// </para>
 			/// </summary>
 			public static class Bates
 			{
 				/// <summary>
-				/// Thread-safe cache for storing <see cref="BatesDelay"/> instances keyed by their options.
-				/// Ensures that multiple requests with identical configuration return the same instance.
+				/// Thread-safe cache mapping <see cref="DelayOptions.Bates"/> to <see cref="BatesDelay"/> instances.
+				/// Ensures that repeated requests with the same options return the same instance.
 				/// </summary>
 				private static readonly ConcurrentDictionary<DelayOptions.Bates, BatesDelay> sCache = new();
 
 				/// <summary>
-				/// Returns a cached <see cref="BatesDelay"/> configured with the specified minimum, maximum,
-				/// number of samples, and time unit.
+				/// Returns a cached <see cref="BatesDelay"/> configured with the specified range, number of samples, and time unit.
 				/// </summary>
-				/// <param name="minimum">The minimum delay value.</param>
-				/// <param name="maximum">The maximum delay value.</param>
-				/// <param name="samples">Number of uniform samples to average for the Bates distribution.</param>
-				/// <param name="unit">Time unit in which the delay will be expressed.</param>
+				/// <param name="minimum">Minimum delay value.</param>
+				/// <param name="maximum">Maximum delay value.</param>
+				/// <param name="samples">Number of uniform samples to average.</param>
+				/// <param name="unit">Time unit for the delay.</param>
+				/// <returns>A <see cref="BatesDelay"/> instance with the requested configuration.</returns>
 				public static BatesDelay For(double minimum, double maximum, int samples, TimeUnit unit)
 				{
 					var options = new DelayOptions.Bates()
@@ -455,24 +453,23 @@ namespace RandomTools.Core
 						.WithMaximum(maximum)
 						.WithSamples(samples);
 
-					return sCache.GetOrAdd(options, 
-						_ => new BatesDelay(options));
+					return sCache.GetOrAdd(options, _ => new BatesDelay(options));
 				}
 
 				/// <summary>
-				/// Returns a cached <see cref="BatesDelay"/> configured for millisecond delays.
+				/// Returns a cached <see cref="BatesDelay"/> configured for milliseconds.
 				/// </summary>
 				public static BatesDelay InMilliseconds(double minimum, double maximum, int samples) =>
 					For(minimum, maximum, samples, TimeUnit.Millisecond);
 
 				/// <summary>
-				/// Returns a cached <see cref="BatesDelay"/> configured for second delays.
+				/// Returns a cached <see cref="BatesDelay"/> configured for seconds.
 				/// </summary>
 				public static BatesDelay InSeconds(double minimum, double maximum, int samples) =>
 					For(minimum, maximum, samples, TimeUnit.Second);
 
 				/// <summary>
-				/// Returns a cached <see cref="BatesDelay"/> configured for minute delays.
+				/// Returns a cached <see cref="BatesDelay"/> configured for minutes.
 				/// </summary>
 				public static BatesDelay InMinutes(double minimum, double maximum, int samples) =>
 					For(minimum, maximum, samples, TimeUnit.Minute);

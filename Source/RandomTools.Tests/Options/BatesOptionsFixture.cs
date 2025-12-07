@@ -206,7 +206,7 @@ namespace RandomTools.Tests.Options
 			bool exists = dict.TryGetValue(keyToLookup, out object? actualValue);
 
 			exists.Should().BeTrue();
-			actualValue.Should().BeSameAs(expectedValue);
+			actualValue.Should().Be(expectedValue);
 		}
 
 		[Test]

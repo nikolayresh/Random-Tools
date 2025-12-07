@@ -8,5 +8,6 @@
 		public static string Minimum => nameof(Minimum);
 		public static string Maximum => nameof(Maximum);
 		public static string Samples => nameof(Samples);
+		public static string Mode => nameof(Mode);
 	}
 }

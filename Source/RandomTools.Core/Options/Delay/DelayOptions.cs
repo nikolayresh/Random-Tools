@@ -97,7 +97,6 @@ namespace RandomTools.Core.Options.Delay
 			public override void Validate()
 			{
 				base.Validate();
-
 				EnsureFinite(Mean);
 				EnsureFinite(StandardDeviation);
 
@@ -117,12 +116,10 @@ namespace RandomTools.Core.Options.Delay
 				}
 			}
 
-			public override bool Equals(Normal? other)
-			{
-				return base.Equals(other) &&
-					other.Mean == Mean &&
-					other.StandardDeviation == StandardDeviation;
-			}
+			public override bool Equals(Normal? other) => 
+				base.Equals(other) &&
+				DoubleComparer.Equals(other.Mean, Mean) &&
+				DoubleComparer.Equals(other.StandardDeviation, StandardDeviation);
 
 			public override int GetHashCode() =>
 				HashCode.Combine(Minimum, Maximum, TimeUnit, Mean, StandardDeviation);
@@ -156,7 +153,6 @@ namespace RandomTools.Core.Options.Delay
 			public override void Validate()
 			{
 				base.Validate();
-
 				EnsureFinite(Mode);
 
 				// Check that the mode lies within the defined [Minimum, Maximum] range
@@ -173,11 +169,9 @@ namespace RandomTools.Core.Options.Delay
 			/// </summary>
 			/// <param name="other">Another <see cref="Triangular"/> instance.</param>
 			/// <returns>True if equal, false otherwise.</returns>
-			public override bool Equals(Triangular? other)
-			{
-				return base.Equals(other) &&
-					   other.Mode == Mode;
-			}
+			public override bool Equals(Triangular? other) =>
+				base.Equals(other) &&
+				DoubleComparer.Equals(other.Mode, Mode);
 
 			/// <summary>
 			/// Returns a hash code for the current instance.
@@ -310,7 +304,6 @@ namespace RandomTools.Core.Options.Delay
 			public override void Validate()
 			{
 				base.Validate();
-
 				EnsureFinite(Power);
 
 				if (Power < 0.0)
@@ -321,12 +314,10 @@ namespace RandomTools.Core.Options.Delay
 			}
 
 			/// <inheritdoc/>
-			public override bool Equals(Polynomial? other)
-			{
-				return base.Equals(other) &&
-					   other.Power == Power &&
-					   other.Reverse == Reverse;
-			}
+			public override bool Equals(Polynomial? other) =>
+				base.Equals(other) &&
+				DoubleComparer.Equals(other.Power, Power) &&
+				other.Reverse == Reverse;
 
 			/// <inheritdoc/>
 			public override int GetHashCode() =>
@@ -394,7 +385,6 @@ namespace RandomTools.Core.Options.Delay
 			{
 				// Validate base numeric fields (Minimum/Maximum)
 				base.Validate();
-
 				EnsureFinite(AlphaValue);
 				EnsureFinite(BetaValue);
 
@@ -416,12 +406,10 @@ namespace RandomTools.Core.Options.Delay
 			/// </summary>
 			/// <param name="other">Other <see cref="Beta"/> instance to compare.</param>
 			/// <returns><see langword="true"/> if all relevant fields are equal; otherwise <see langword="false"/>.</returns>
-			public override bool Equals(Beta? other)
-			{
-				return base.Equals(other) &&
-					   other.AlphaValue == AlphaValue &&
-					   other.BetaValue == BetaValue;
-			}
+			public override bool Equals(Beta? other) => 
+				base.Equals(other) &&
+				DoubleComparer.Equals(other.AlphaValue, AlphaValue) &&
+				DoubleComparer.Equals(other.BetaValue, BetaValue);
 
 			/// <summary>
 			/// Computes a hash code based on range, time unit, and Beta distribution parameters.
@@ -489,11 +477,9 @@ namespace RandomTools.Core.Options.Delay
 				}
 			}
 
-			public override bool Equals(Sequence? other)
-			{
-				return base.Equals(other) &&
-					   other.Values.SequenceEqual(Values);
-			}
+			public override bool Equals(Sequence? other) => 
+				base.Equals(other) &&
+				other.Values.SequenceEqual(Values);
 
 			public override int GetHashCode() =>
 				HashCode.Combine(Minimum, Maximum, TimeUnit, Values);
