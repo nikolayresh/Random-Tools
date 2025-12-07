@@ -13,6 +13,17 @@ namespace RandomTools.Core.Options.Delay
 		where TDelayOptions : DelayOptionsBase<TDelayOptions>
 	{
 		/// <summary>
+		/// Provides a default equality comparer for <see cref="double"/> values.
+		/// <para>
+		/// Used for comparing all numeric fields in options classes, such as <see cref="Minimum"/>, 
+		/// <see cref="Maximum"/>, and other derived fields like <c>Mode</c>.
+		/// Note that this comparer can compare non-finite values (NaN, Infinity), 
+		/// so validation via <see cref="EnsureFinite"/> is still required to enforce finiteness.
+		/// </para>
+		/// </summary>
+		protected static EqualityComparer<double> DoubleComparer => EqualityComparer<double>.Default;
+
+		/// <summary>
 		/// Minimum value of the delay range.
 		/// Can be negative, zero, or positive.
 		/// </summary>
@@ -127,11 +138,9 @@ namespace RandomTools.Core.Options.Delay
 			if (other is null)
 				return false;
 
-			var comparer = EqualityComparer<double>.Default;
-
 			return
-				comparer.Equals(other.Minimum, Minimum) &&
-				comparer.Equals(other.Maximum, Maximum) &&
+				DoubleComparer.Equals(other.Minimum, Minimum) &&
+				DoubleComparer.Equals(other.Maximum, Maximum) &&
 				other.TimeUnit == TimeUnit;
 		}
 

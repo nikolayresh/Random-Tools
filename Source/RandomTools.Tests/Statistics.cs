@@ -110,6 +110,20 @@
 
 			return stdDev / Math.Sqrt(sampleCount);
 		}
+
+		/// <summary>
+		/// Estimates the order <c>n</c> of a Bates distribution from the sample variance.
+		/// </summary>
+		/// <param name="variance">Variance of the Bates-distributed sample.</param>
+		/// <param name="bounds">Min and Max of the underlying uniform distribution.</param>
+		/// <returns>Estimated number of uniform variables averaged (n).</returns>
+		public static double EstimateBatesOrder(double variance, (double Min, double Max) bounds)
+		{
+			double range = bounds.Max - bounds.Min;
+			double n = range * range / (12 * variance);
+
+			return n;
+		}
 	}
 
 	/// <summary>
