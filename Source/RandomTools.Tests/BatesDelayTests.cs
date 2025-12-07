@@ -22,7 +22,7 @@ namespace RandomTools.Tests
 			[Values(15_000.0, 20_000.0, 25_000.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
 		{
-			double expectedMean = (min + max) / 2.0;
+			double expMean = (min + max) / 2.0;
 			var delay = RandomTool.Delay.Bates.InMilliseconds(min, max, samples);
 
 			for (int i = 0; i < Iterations; i++)
@@ -39,7 +39,10 @@ namespace RandomTools.Tests
 			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
 
 			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
-			stats.Mean.Should().BeApproximately(expectedMean, delta);
+			stats.Mean.Should().BeApproximately(expMean, delta);
+
+			double nHat = Statistics.EstimateBatesOrder(stats.Variance, (min, max));
+			nHat.Should().BeApproximately(samples, samples * 0.1);
 		}
 
 		[Test, Combinatorial]
@@ -48,7 +51,7 @@ namespace RandomTools.Tests
 			[Values(3.0, 3.5, 4.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
 		{
-			double expectedMean = (min + max) / 2.0;
+			double expMean = (min + max) / 2.0;
 			var delay = RandomTool.Delay.Bates.InMinutes(min, max, samples);
 
 			for (int i = 0; i < Iterations; i++)
@@ -61,11 +64,14 @@ namespace RandomTools.Tests
 				_delays.Add(next);
 			}
 
-			var stats = Statistics.Analyze(_delays.Select(x => x.TotalMinutes));
-			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
+			var (Mean, Variance, StandardDeviation, Count) = Statistics.Analyze(_delays.Select(x => x.TotalMinutes));
+			double SEM = Statistics.StandardErrorOfMean(StandardDeviation, Count);
 
 			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
-			stats.Mean.Should().BeApproximately(expectedMean, delta);
+			Mean.Should().BeApproximately(expMean, delta);
+
+			double nHat = Statistics.EstimateBatesOrder(Variance, (min, max));
+			nHat.Should().BeApproximately(samples, samples * 0.1);
 		}
 
 		[Test, Combinatorial]
@@ -74,7 +80,7 @@ namespace RandomTools.Tests
 			[Values(20.0, 25.0, 30.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 100)] int samples)
 		{
-			double expectedMean = (min + max) / 2.0; 
+			double expMean = (min + max) / 2.0; 
 			var delay = RandomTool.Delay.Bates.InSeconds(min, max, samples);
 
 			for (int i = 0; i < Iterations; i++)
@@ -87,11 +93,14 @@ namespace RandomTools.Tests
 				_delays.Add(next);
 			}
 
-			var stats = Statistics.Analyze(_delays.Select(x => x.TotalSeconds));
-			double SEM = Statistics.StandardErrorOfMean(stats.StandardDeviation, stats.Count);
+			var (Mean, Variance, StandardDeviation, Count) = Statistics.Analyze(_delays.Select(x => x.TotalSeconds));
+			double SEM = Statistics.StandardErrorOfMean(StandardDeviation, Count);
 
 			double delta = Statistics.GetConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
-			stats.Mean.Should().BeApproximately(expectedMean, delta);
+			Mean.Should().BeApproximately(expMean, delta);
+
+			double nHat = Statistics.EstimateBatesOrder(Variance, (min, max));
+			nHat.Should().BeApproximately(samples, samples * 0.1);
 		}
 	}
 }
