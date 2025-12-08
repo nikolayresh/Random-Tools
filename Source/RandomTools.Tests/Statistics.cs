@@ -43,12 +43,12 @@
 		/// <param name="level">The desired confidence level.</param>
 		/// <param name="sem">The standard error of the mean.</param>
 		/// <returns>The confidence interval delta.</returns>
-		public static double GetConfidenceDelta(ConfidenceLevel level, double sem)
+		public static double ConfidenceDelta(ConfidenceLevel level, double sem)
 		{
 			ArgumentOutOfRangeException.ThrowIfNegative(sem);
 
-			double z = ZValues[(int)level];
-			return z * sem;
+			double zValue = ZValues[(int)level];
+			return zValue * sem;
 		}
 
 		/// <summary>
@@ -65,7 +65,7 @@
 		/// </returns>
 		/// <exception cref="ArgumentNullException">Thrown if <paramref name="samples"/> is null.</exception>
 		/// <exception cref="ArgumentException">Thrown if fewer than 2 samples are provided.</exception>
-		public static (double Mean, double Variance, double StandardDeviation, int Count) Analyze(IEnumerable<double> samples)
+		public static (double Mean, double Variance, double StandardDeviation, int Count) AnalyzeSamples(IEnumerable<double> samples)
 		{
 			ArgumentNullException.ThrowIfNull(samples);
 
@@ -115,12 +115,12 @@
 		/// Estimates the order <c>n</c> of a Bates distribution from the sample variance.
 		/// </summary>
 		/// <param name="variance">Variance of the Bates-distributed sample.</param>
-		/// <param name="bounds">Min and Max of the underlying uniform distribution.</param>
+		/// <param name="bounds">Min and Max of the underlying Bates distribution.</param>
 		/// <returns>Estimated number of uniform variables averaged (n).</returns>
 		public static double EstimateBatesOrder(double variance, (double Min, double Max) bounds)
 		{
 			double range = bounds.Max - bounds.Min;
-			double n = range * range / (12 * variance);
+			double n = range * range / (12.0 * variance);
 
 			return n;
 		}

@@ -1,5 +1,4 @@
 ﻿using RandomTools.Core.Options.Delay;
-using System;
 
 namespace RandomTools.Core.Random.Delay
 {
@@ -12,11 +11,9 @@ namespace RandomTools.Core.Random.Delay
 		/// Initializes a new instance of the <see cref="TriangularDelay"/> class with the specified options.
 		/// </summary>
 		/// <param name="options">Triangular distribution options, including Minimum, Maximum, Mode, and TimeUnit.</param>
-#pragma warning disable IDE0290 // Use primary constructor
-		public TriangularDelay(DelayOptions.Triangular options) : base(options)
-#pragma warning restore IDE0290 // Use primary constructor
-		{
-		}
+#pragma warning disable IDE0290
+		public TriangularDelay(DelayOptions.Triangular options) : base(options) { }
+#pragma warning restore IDE0290
 
 		/// <summary>
 		/// Generates the next random delay as a <see cref="TimeSpan"/> using the Triangular distribution.
@@ -33,22 +30,22 @@ namespace RandomTools.Core.Random.Delay
 
 			// Normalized position of the mode in the [min, max] range
 			double fMode = (mode - min) / (max - min);
-			double value;
+			double scaled;
 
 			// Apply inverse CDF of triangular distribution
 			if (u < fMode)
 			{
 				// Left side of the mode
-				value = min + Math.Sqrt(u * (max - min) * (mode - min));
+				scaled = min + Math.Sqrt(u * (max - min) * (mode - min));
 			}
 			else
 			{
 				// Right side of the mode
-				value = max - Math.Sqrt((1.0 - u) * (max - min) * (max - mode));
+				scaled = max - Math.Sqrt((1.0 - u) * (max - min) * (max - mode));
 			}
 
 			// Convert the numeric value to TimeSpan according to the specified time unit
-			return CoreTools.ToTimeSpan(value, Options.TimeUnit);
+			return CoreTools.ToTimeSpan(scaled, Options.TimeUnit);
 		}
 	}
 }

@@ -474,46 +474,75 @@ namespace RandomTools.Core
 				public static BatesDelay InMinutes(double minimum, double maximum, int samples) =>
 					For(minimum, maximum, samples, TimeUnit.Minute);
 			}
-		}
 
-		public static class Triangular
-		{
-			private static readonly ConcurrentDictionary<DelayOptions.Triangular, TriangularDelay> sCache = new();
-
-			public static TriangularDelay InMilliseconds(double minimum, double maximum, double mode)
+			/// <summary>
+			/// Provides cached instances of <see cref="TriangularDelay"/> for given parameters.
+			/// <para>
+			/// This class allows creating triangular-distributed delay generators with
+			/// specified minimum, mode, maximum, and time unit. Repeated requests with the
+			/// same parameters return the same cached instance for efficiency.
+			/// </para>
+			/// </summary>
+			public static class Triangular
 			{
-				var options = new DelayOptions.Triangular()
-					.WithTimeUnit(TimeUnit.Millisecond)
-					.WithMinimum(minimum)
-					.WithMaximum(maximum)
-					.WithMode(mode);
+				/// <summary>
+				/// Internal cache to store created <see cref="TriangularDelay"/> instances
+				/// keyed by their <see cref="DelayOptions.Triangular"/> options.
+				/// </summary>
+				private static readonly ConcurrentDictionary<DelayOptions.Triangular, TriangularDelay> sCache = new();
 
-				return sCache.GetOrAdd(options,
-					_ => new TriangularDelay(options));
-			}
+				/// <summary>
+				/// Gets a <see cref="TriangularDelay"/> instance for the specified parameters.
+				/// <para>
+				/// If an instance with the same options already exists in the cache, it will
+				/// be returned. Otherwise, a new instance is created and added to the cache.
+				/// </para>
+				/// </summary>
+				/// <param name="minimum">The minimum value of the triangular distribution.</param>
+				/// <param name="mode">The mode (peak) value of the triangular distribution.</param>
+				/// <param name="maximum">The maximum value of the triangular distribution.</param>
+				/// <param name="unit">The time unit for the generated delays.</param>
+				/// <returns>A cached or newly created <see cref="TriangularDelay"/> instance.</returns>
+				public static TriangularDelay For(double minimum, double mode, double maximum, TimeUnit unit)
+				{
+					var options = new DelayOptions.Triangular()
+						.WithTimeUnit(unit)
+						.WithMinimum(minimum)
+						.WithMode(mode)
+						.WithMaximum(maximum);
 
-			public static TriangularDelay InSeconds(double minimum, double maximum, double mode)
-			{
-				var options = new DelayOptions.Triangular()
-					.WithTimeUnit(TimeUnit.Second)
-					.WithMinimum(minimum)
-					.WithMaximum(maximum)
-					.WithMode(mode);
+					return sCache.GetOrAdd(options, _ => new TriangularDelay(options));
+				}
 
-				return sCache.GetOrAdd(options,
-					_ => new TriangularDelay(options));
-			}
+				/// <summary>
+				/// Creates a <see cref="TriangularDelay"/> with delays measured in milliseconds.
+				/// </summary>
+				/// <param name="minimum">Minimum value in milliseconds.</param>
+				/// <param name="mode">Mode (peak) value in milliseconds.</param>
+				/// <param name="maximum">Maximum value in milliseconds.</param>
+				/// <returns>A cached or new <see cref="TriangularDelay"/> instance.</returns>
+				public static TriangularDelay InMilliseconds(double minimum, double mode, double maximum)
+					=> For(minimum, mode, maximum, TimeUnit.Millisecond);
 
-			public static TriangularDelay InMinutes(double minimum, double maximum, double mode)
-			{
-				var options = new DelayOptions.Triangular()
-					.WithTimeUnit(TimeUnit.Minute)
-					.WithMinimum(minimum)
-					.WithMaximum(maximum)
-					.WithMode(mode);
+				/// <summary>
+				/// Creates a <see cref="TriangularDelay"/> with delays measured in seconds.
+				/// </summary>
+				/// <param name="minimum">Minimum value in seconds.</param>
+				/// <param name="mode">Mode (peak) value in seconds.</param>
+				/// <param name="maximum">Maximum value in seconds.</param>
+				/// <returns>A cached or new <see cref="TriangularDelay"/> instance.</returns>
+				public static TriangularDelay InSeconds(double minimum, double mode, double maximum)
+					=> For(minimum, mode, maximum, TimeUnit.Second);
 
-				return sCache.GetOrAdd(options,
-					_ => new TriangularDelay(options));
+				/// <summary>
+				/// Creates a <see cref="TriangularDelay"/> with delays measured in minutes.
+				/// </summary>
+				/// <param name="minimum">Minimum value in minutes.</param>
+				/// <param name="mode">Mode (peak) value in minutes.</param>
+				/// <param name="maximum">Maximum value in minutes.</param>
+				/// <returns>A cached or new <see cref="TriangularDelay"/> instance.</returns>
+				public static TriangularDelay InMinutes(double minimum, double mode, double maximum)
+					=> For(minimum, mode, maximum, TimeUnit.Minute);
 			}
 		}
 	}
