@@ -162,7 +162,7 @@ namespace RandomTools.Tests.Options
 		{
 			double min = Math.Round(CoreTools.NextDouble(600.0, 900.0));
 			double max = Math.Round(CoreTools.NextDouble(1200.0, 1600.0));
-			double mode = Math.Round(Math.FusedMultiplyAdd(modeFactor, max - min, min));
+			double mode = Math.FusedMultiplyAdd(modeFactor, max - min, min);
 
 			var options = new DelayOptions.Triangular()
 				.WithTimeUnit(TimeUnit.Millisecond)

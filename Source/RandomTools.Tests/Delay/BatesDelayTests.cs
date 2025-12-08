@@ -8,13 +8,13 @@ namespace RandomTools.Tests.Delay
 	{
 		[Test, Combinatorial]
 		public void BatesDelays_Milliseconds_ShouldMatchRangeMeanAndOrder(
-			[Values(1_000.0, 5_000.0, 10_000.0)] double min,
+			[Values( 1_000.0,  5_000.0, 10_000.0)] double min,
 			[Values(15_000.0, 20_000.0, 25_000.0)] double max,
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 75, 100)] int samples)
 		{
 			double expMean = (min + max) / 2.0;
 			var delay = RandomTool.Delay.Bates.InMilliseconds(min, max, samples);
-
+			
 			GenerateSamples(delay, Select.Milliseconds, (min, max));
 
 			WithMilliseconds(data =>

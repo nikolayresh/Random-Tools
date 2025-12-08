@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using RandomTools.Core.Options.Delay;
 using RandomTools.Core.Random.Delay;
+using RandomTools.Tests;
 
 /// <summary>
 /// Base class for testing delay generators.
@@ -48,7 +49,7 @@ public abstract class DelayTestBase
 	[SetUp]
 	public virtual void OnSetUp()
 	{
-		_delays ??= new List<TimeSpan>();
+		_delays ??= [];
 		_delays.Clear();
 	}
 
@@ -91,7 +92,8 @@ public abstract class DelayTestBase
 	{
 		ArgumentNullException.ThrowIfNull(action);
 
-		action.Invoke(_delays.Select(Select.Milliseconds));
+		action.Invoke(
+			_delays.Select(Select.Milliseconds));
 	}
 
 	/// <summary>
@@ -102,7 +104,8 @@ public abstract class DelayTestBase
 	{
 		ArgumentNullException.ThrowIfNull(action);
 
-		action.Invoke(_delays.Select(Select.Seconds));
+		action.Invoke(
+			_delays.Select(Select.Seconds));
 	}
 
 	/// <summary>
@@ -113,6 +116,7 @@ public abstract class DelayTestBase
 	{
 		ArgumentNullException.ThrowIfNull(action);
 
-		action.Invoke(_delays.Select(Select.Minutes));
+		action.Invoke(
+			_delays.Select(Select.Minutes));
 	}
 }

@@ -23,6 +23,10 @@ namespace RandomTools.Tests.Delay
 
 				double delta = Statistics.ConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
 				Mean.Should().BeApproximately(expMean, delta);
+
+				var hist = Statistics.ComputeHistogram(data, (min, max));
+				var binRange = hist.GetMaxBinRange().GetValueOrDefault();
+				mode.Should().BeInRange(binRange.Min, binRange.Max);
 			});
 		}
 	}
