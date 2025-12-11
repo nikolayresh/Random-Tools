@@ -4,7 +4,7 @@ using RandomTools.Core;
 namespace RandomTools.Tests.Delay
 {
 	[TestFixture]
-	public class BatesDelayTests : DelayTestBase
+	public class BatesDelayTests : AbstractDelayTest
 	{
 		[Test, Combinatorial]
 		public void BatesDelays_Milliseconds_ShouldMatchRangeMeanAndOrder(
@@ -15,7 +15,7 @@ namespace RandomTools.Tests.Delay
 			double expMean = (min + max) / 2.0;
 			var delay = RandomTool.Delay.Bates.InMilliseconds(min, max, samples);
 			
-			GenerateSamples(delay, Select.Milliseconds, (min, max));
+			GenerateSamples(delay, Selector.Milliseconds, (min, max));
 
 			WithMilliseconds(data =>
 			{
@@ -39,7 +39,7 @@ namespace RandomTools.Tests.Delay
 			double expMean = (min + max) / 2.0;
 			var delay = RandomTool.Delay.Bates.InMinutes(min, max, samples);
 
-			GenerateSamples(delay, Select.Minutes, (min, max));
+			GenerateSamples(delay, Selector.Minutes, (min, max));
 
 			WithMinutes(data =>
 			{
@@ -63,7 +63,7 @@ namespace RandomTools.Tests.Delay
 			double expMean = (min + max) / 2.0;
 			var delay = RandomTool.Delay.Bates.InSeconds(min, max, samples);
 
-			GenerateSamples(delay, Select.Seconds, (min, max));
+			GenerateSamples(delay, Selector.Seconds, (min, max));
 
 			WithSeconds(data =>
 			{

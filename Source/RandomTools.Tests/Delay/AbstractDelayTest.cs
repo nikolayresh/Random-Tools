@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using RandomTools.Core.Options.Delay;
 using RandomTools.Core.Random.Delay;
-using RandomTools.Tests;
 
 /// <summary>
 /// Base class for testing delay generators.
@@ -10,7 +9,7 @@ using RandomTools.Tests;
 /// converting them to different units, and performing statistical checks in tests.
 /// </para>
 /// </summary>
-public abstract class DelayTestBase
+public abstract class AbstractDelayTest
 {
 	/// <summary>
 	/// Common selectors to convert <see cref="TimeSpan"/> to numerical values.
@@ -18,7 +17,7 @@ public abstract class DelayTestBase
 	/// Used to analyze delays in different units (milliseconds, seconds, minutes).
 	/// </para>
 	/// </summary>
-	protected static class Select
+	protected static class Selector
 	{
 		/// <summary>Converts a <see cref="TimeSpan"/> to milliseconds.</summary>
 		public static readonly Func<TimeSpan, double> Milliseconds = ts => ts.TotalMilliseconds;
@@ -93,7 +92,7 @@ public abstract class DelayTestBase
 		ArgumentNullException.ThrowIfNull(action);
 
 		action.Invoke(
-			_delays.Select(Select.Milliseconds));
+			_delays.Select(Selector.Milliseconds));
 	}
 
 	/// <summary>
@@ -105,7 +104,7 @@ public abstract class DelayTestBase
 		ArgumentNullException.ThrowIfNull(action);
 
 		action.Invoke(
-			_delays.Select(Select.Seconds));
+			_delays.Select(Selector.Seconds));
 	}
 
 	/// <summary>
@@ -117,6 +116,6 @@ public abstract class DelayTestBase
 		ArgumentNullException.ThrowIfNull(action);
 
 		action.Invoke(
-			_delays.Select(Select.Minutes));
+			_delays.Select(Selector.Minutes));
 	}
 }

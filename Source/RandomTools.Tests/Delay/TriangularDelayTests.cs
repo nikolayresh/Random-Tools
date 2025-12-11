@@ -3,7 +3,7 @@ using RandomTools.Core;
 
 namespace RandomTools.Tests.Delay
 {
-	public class TriangularDelayTests : DelayTestBase
+	public class TriangularDelayTests : AbstractDelayTest
 	{
 		[Test, Combinatorial]
 		public void TriangularDelay_Minutes_ShouldHaveExpectedMean(
@@ -14,7 +14,7 @@ namespace RandomTools.Tests.Delay
 			double expMean = (min + mode + max) / 3.0;
 			
 			var delay = RandomTool.Delay.Triangular.InMinutes(min, mode, max);
-			GenerateSamples(delay, Select.Minutes, (min, max));
+			GenerateSamples(delay, Selector.Minutes, (min, max));
 
 			WithMinutes(data =>
 			{
@@ -27,6 +27,8 @@ namespace RandomTools.Tests.Delay
 				var hist = Statistics.ComputeHistogram(data, (min, max));
 				var binRange = hist.GetMaxBinRange().GetValueOrDefault();
 				mode.Should().BeInRange(binRange.Min, binRange.Max);
+
+
 			});
 		}
 	}

@@ -11,9 +11,9 @@ namespace RandomTools.Core.Random.Delay
 		/// Initializes a new instance of <see cref="UniformDelay"/> using the provided options.
 		/// </summary>
 		/// <param name="options">The delay configuration, including range and time unit.</param>
-#pragma warning disable IDE0290 // Use primary constructor
+#pragma warning disable IDE0290
 		public UniformDelay(DelayOptions.Uniform options) : base(options) { }
-#pragma warning restore IDE0290 // Use primary constructor
+#pragma warning restore IDE0290
 
 		/// <summary>
 		/// Generates the next delay value as a <see cref="TimeSpan"/>.
