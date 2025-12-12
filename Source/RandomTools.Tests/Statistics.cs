@@ -94,7 +94,7 @@
 					nameof(samples));
 			}
 
-			double variance = m2 / (count - 1); // Sample variance
+			double variance = m2 / (count - 1);
 			return (mean, variance, Math.Sqrt(variance), count);
 		}
 
@@ -133,6 +133,22 @@
 		}
 
 		/// <summary>
+		/// Estimates the mode of a sample set by identifying the histogram bin with the highest count.
+		/// Returns the midpoint of that bin.
+		/// </summary>
+		/// <remarks>
+		/// This is a non-parametric estimator suitable for arbitrarily shaped distributions.
+		/// </remarks>
+		public static double EstimateMode(IEnumerable<double> samples, int bins)
+		{
+			ArgumentNullException.ThrowIfNull(samples);
+			ArgumentOutOfRangeException.ThrowIfNegativeOrZero(bins);
+
+			var hist = ComputeHistogram(samples, bins);
+			return Math.FusedMultiplyAdd(hist.MaxBin + 0.5, hist.Width, hist.Min);
+		}
+
+		/// <summary>
 		/// Computes a histogram for numeric samples within specified bounds and bin count.
 		/// Tracks the number of samples in each bin and the bin with the maximum count.
 		/// </summary>
@@ -149,26 +165,25 @@
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// Thrown if <paramref name="bins"/> is less than 1 or if <paramref name="bounds"/> are invalid.
 		/// </exception>
-		public static Histogram ComputeHistogram(IEnumerable<double> samples, (double Min, double Max) bounds, int bins = 100)
+		public static Histogram ComputeHistogram(IEnumerable<double> samples, int bins = 100)
 		{
 			ArgumentNullException.ThrowIfNull(samples);
-			ArgumentOutOfRangeException.ThrowIfGreaterThan(bounds.Min, bounds.Max);
 			ArgumentOutOfRangeException.ThrowIfNegativeOrZero(bins);
+
+			double min = samples.Min();
+			double max = samples.Max();
 
 			var hist = new Histogram
 			{
 				Bins = bins,
-				Bounds = bounds,
-				Width = (bounds.Max - bounds.Min) / bins,
+				Min = min, Max = max,
+				Width = (max - min) / bins,
 				Counts = new int[bins]
 			};
 
 			foreach (double next in samples)
 			{
-				if (next < bounds.Min || next > bounds.Max)
-					continue;
-
-				int idx = (int)((next - bounds.Min) / hist.Width);
+				int idx = (int)((next - hist.Min) / hist.Width);
 				if (idx >= hist.Bins)
 					idx = hist.Bins - 1;
 
@@ -193,14 +208,15 @@
 		/// <summary>Number of bins in the histogram.</summary>
 		public int Bins { get; init; }
 
+		public double Min { get; init; }
+
+		public double Max { get; init; }
+
 		/// <summary>Width of each bin.</summary>
 		public double Width { get; init; }
 
-		/// <summary>Minimum and maximum bounds of the histogram.</summary>
-		public (double Min, double Max) Bounds { get; init; }
-
 		/// <summary>Count of samples in each bin.</summary>
-		public int[] Counts { get; init; } = Array.Empty<int>();
+		public int[] Counts { get; init; } = [];
 
 		/// <summary>Maximum count in any single bin.</summary>
 		public int MaxHits { get; set; }
@@ -208,37 +224,16 @@
 		/// <summary>Index of the bin with the maximum count.</summary>
 		public int MaxBin { get; set; } = -1;
 
-		/// <summary>
-		/// Returns the value range covered by a specific bin.
-		/// </summary>
-		/// <param name="binIndex">Index of the bin (0-based).</param>
-		/// <returns>Tuple (Min, Max) representing the value range of the bin.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="binIndex"/> is outside valid range.</exception>
-		public (double Min, double Max) GetBinRange(int binIndex)
+		public int FindBin(double value)
 		{
-			if (binIndex < 0 || binIndex >= Bins)
-			{
-				throw new ArgumentOutOfRangeException(
-					nameof(binIndex),
-					"Bin-index is out of bounds.");
-			}
+			if (value < Min || value > Max)
+				return -1;
 
-			double binMin = Math.FusedMultiplyAdd(binIndex, Width, Bounds.Min);
-			double binMax = (binIndex + 1 == Bins) 
-				? Bounds.Max 
-				: Math.FusedMultiplyAdd(binIndex + 1, Width, Bounds.Min);
+			int idx = (int)((value - Min) / Width);
+			if (idx >= Bins)
+				idx = Bins - 1;
 
-			return (binMin, binMax);
-		}
-
-		/// <summary>
-		/// Returns the value range of the bin with the maximum count.
-		/// </summary>
-		public (double Min, double Max)? GetMaxBinRange()
-		{
-			return MaxBin >= 0
-				? GetBinRange(MaxBin)
-			    : null;
+			return idx;
 		}
 	}
 
