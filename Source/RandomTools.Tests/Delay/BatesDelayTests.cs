@@ -19,8 +19,7 @@ namespace RandomTools.Tests.Delay
 
 			WithMilliseconds(data =>
 			{
-				var (Mean, Variance, StandardDeviation, Count) = Statistics.AnalyzeSamples(data);
-				double SEM = Statistics.StandardErrorOfMean(StandardDeviation, Count);
+				var (Mean, Variance, _, SEM, _, _) = Statistics.AnalyzeSamples(data);
 
 				double delta = Statistics.ConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
 				Mean.Should().BeApproximately(expMean, delta);
@@ -43,8 +42,7 @@ namespace RandomTools.Tests.Delay
 
 			WithMinutes(data =>
 			{
-				var (Mean, Variance, StandardDeviation, Count) = Statistics.AnalyzeSamples(data);
-				double SEM = Statistics.StandardErrorOfMean(StandardDeviation, Count);
+				var (Mean, Variance, _, SEM, _, _) = Statistics.AnalyzeSamples(data);
 
 				double delta = Statistics.ConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
 				Mean.Should().BeApproximately(expMean, delta);
@@ -61,14 +59,13 @@ namespace RandomTools.Tests.Delay
 			[Values(1, 2, 3, 4, 5, 10, 25, 50, 75, 100)] int samples)
 		{
 			double expMean = (min + max) / 2.0;
-			var delay = RandomTool.Delay.Bates.InSeconds(min, max, samples);
 
+			var delay = RandomTool.Delay.Bates.InSeconds(min, max, samples);
 			GenerateSamples(delay, Selector.Seconds, (min, max));
 
 			WithSeconds(data =>
 			{
-				var (Mean, Variance, StandardDeviation, Count) = Statistics.AnalyzeSamples(data);
-				double SEM = Statistics.StandardErrorOfMean(StandardDeviation, Count);
+				var (Mean, Variance, _, SEM, _, _) = Statistics.AnalyzeSamples(data);
 
 				double delta = Statistics.ConfidenceDelta(ConfidenceLevel.Confidence999, SEM);
 				Mean.Should().BeApproximately(expMean, delta);

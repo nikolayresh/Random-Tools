@@ -1,8 +1,6 @@
 ﻿using FluentAssertions;
-using RandomTools.Core;
 using RandomTools.Core.Exceptions;
 using RandomTools.Core.Options.Delay;
-using System.Security.Cryptography;
 
 namespace RandomTools.Tests.Options
 {
@@ -14,11 +12,13 @@ namespace RandomTools.Tests.Options
 		{
 			var options = new DelayOptions.Normal();
 
-			options.Invoking(opt => opt.Validate())
+			var ex = options.Invoking(opt => opt.Validate())
 				.Should()
 				.Throw<OptionsValidationException>()
-				.Which.Options
-				.Should().BeSameAs(options);
+				.Which;
+
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().Contain(ExceptionMessages.RangeIsTooShort);
 		}
 
 		[Test]
@@ -33,8 +33,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"({value})");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(Keywords.Minimum, ExceptionMessages.Format(value, true));
 		}
 
 		[Test]
@@ -49,8 +49,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"({value})");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(Keywords.Maximum, ExceptionMessages.Format(value, true));
 		}
 
 		[Test]
@@ -58,6 +58,8 @@ namespace RandomTools.Tests.Options
 		public void When_Mean_Is_Not_Finite_Should_Throw_On_Validate(double value)
 		{
 			var options = new DelayOptions.Normal()
+				.WithMinimum(100.0)
+				.WithMaximum(200.0)
 				.WithMean(value);
 
 			var ex = options.Invoking(opt => opt.Validate())
@@ -65,8 +67,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"({value})");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(Keywords.Mean, ExceptionMessages.Format(value, true));
 		}
 
 		[Test]
@@ -74,6 +76,9 @@ namespace RandomTools.Tests.Options
 		public void When_StandardDeviation_Is_Not_Finite_Should_Throw_On_Validate(double value)
 		{
 			var options = new DelayOptions.Normal()
+				.WithMinimum(100.0)
+				.WithMaximum(200.0)
+				.WithMean(150.0)
 				.WithStandardDeviation(value);
 
 			var ex = options.Invoking(opt => opt.Validate())
@@ -81,8 +86,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"({value})");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(Keywords.StandardDeviation, ExceptionMessages.Format(value, true));
 		}
 
 		[Test]
@@ -90,6 +95,9 @@ namespace RandomTools.Tests.Options
 		public void When_StandardDeviation_Is_ZeroLike_Should_Throw_On_Validate(double value)
 		{
 			var options = new DelayOptions.Normal()
+				.WithMinimum(100.0)
+				.WithMaximum(200.0)
+				.WithMean(150.0)
 				.WithStandardDeviation(value);
 
 			var ex = options.Invoking(opt => opt.Validate())
@@ -97,8 +105,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"({value})");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().Contain(ExceptionMessages.Format(value, true));
 		}
 
 		[Test]
@@ -109,6 +117,9 @@ namespace RandomTools.Tests.Options
 		public void When_StandardDeviation_Is_Negative_Should_Throw_On_Validate(double value)
 		{
 			var options = new DelayOptions.Normal()
+				.WithMinimum(100.0)
+				.WithMaximum(200.0)
+				.WithMean(150.0)
 				.WithStandardDeviation(value);
 
 			var ex = options.Invoking(opt => opt.Validate())
@@ -116,8 +127,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"({value})");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().Contain(ExceptionMessages.Format(value, true));
 		}
 
 		[Test]
@@ -131,11 +142,9 @@ namespace RandomTools.Tests.Options
 		[TestCase(15.0, 15.0 + double.Epsilon)]
 		[TestCase(85.0, 85.0)]
 		[TestCase(85.0, 85.0 + double.Epsilon)]
-		public void When_Range_Is_Too_Narrow_Should_Throw_On_Validate(double min, double max)
+		public void When_Range_Is_Too_Short_Should_Throw_On_Validate(double min, double max)
 		{
 			var options = new DelayOptions.Normal()
-				.WithMean(0.0)
-				.WithStandardDeviation(RandomNumberGenerator.GetInt32(10, 30))
 				.WithMinimum(min)
 				.WithMaximum(max);
 
@@ -144,9 +153,11 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"[{min}");
-			ex.Message.Should().Contain($"{max}]");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(
+				ExceptionMessages.RangeIsTooShort,
+				Keywords.Minimum,
+				Keywords.Maximum);
 		}
 
 		[Test]
@@ -166,68 +177,54 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"[{min}");
-			ex.Message.Should().Contain($"{max}]");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(
+				ExceptionMessages.Format(mean, false),
+				ExceptionMessages.Format(stdDev, false),
+				ExceptionMessages.Format(min, false),
+				ExceptionMessages.Format(max, false));
 		}
 
 		[Test]
-		public void Equals_Returns_True_For_Same_NormalOptions()
+		public void When_Used_As_Dictionary_Key_Should_Return_Correct_Value()
 		{
-			const double mean = 10.0;
-			const double stdDev = 5.0;
-			const double min = 2.0;
-			const double max = 18.0;
-			const TimeUnit unit = TimeUnit.Second;
+			const double min = 200.0;
+			const double max = 400.0;
+			const double mean = 300.0;
+			const double stdDev = 25.0;
 
-			var optX = new DelayOptions.Normal()
-				.WithTimeUnit(unit)
-				.WithMean(mean)
-				.WithStandardDeviation(stdDev)
-				.WithMinimum(min)
-				.WithMaximum(max);
-
-			var optY = new DelayOptions.Normal()
-				.WithTimeUnit(unit)
-				.WithMean(mean)
-				.WithStandardDeviation(stdDev)
-				.WithMinimum(min)
-				.WithMaximum(max);
-
-			optX.Equals(optY).Should().BeTrue();
-		}
-
-		[Test]
-		public void NormalOptions_Can_Be_Used_As_Dictionary_Key()
-		{
-			const double mean = 0.0;
-			const double stdDev = 5.0;
-			const double min = -10.0;
-			const double max = 10.0;
-			const TimeUnit unit = TimeUnit.Second;
-			Guid expectedId = Guid.NewGuid();
-
-			var dict = new Dictionary<DelayOptions.Normal, Guid>();
 			var options = new DelayOptions.Normal()
-				.WithTimeUnit(unit)
-				.WithMean(mean)
-				.WithStandardDeviation(stdDev)
 				.WithMinimum(min)
-				.WithMaximum(max);
-
-			dict[options] = expectedId;
-
-			var lookupKey = new DelayOptions.Normal()
-				.WithTimeUnit(unit)
+				.WithMaximum(max)
 				.WithMean(mean)
-				.WithStandardDeviation(stdDev)
-				.WithMinimum(min)
-				.WithMaximum(max);
+				.WithStandardDeviation(stdDev);
 
-			bool found = dict.TryGetValue(lookupKey, out Guid actualId);
-			
-			found.Should().BeTrue();
-			actualId.Should().Be(expectedId);
+			var keyToLookup = (DelayOptions.Normal)options.Clone();
+			var expectedValue = new object();
+
+			var dict = new Dictionary<DelayOptions.Normal, object>
+			{
+				[options] = expectedValue
+			};
+
+			bool exists = dict.TryGetValue(keyToLookup, out object? actualValue);
+
+			exists.Should().BeTrue();
+			actualValue.Should().Be(expectedValue);
+		}
+
+		[Test]
+		[TestCase( 200.0, 800.0)]
+		[TestCase( 100.0, 300.0)]
+		[TestCase(   0.0, 300.0)]
+		[TestCase(-300.0,   0.0)]
+		public void When_AutoFit_Used_Should_Evaluate_Correct_Mean_And_StandardDeviation(double min, double max)
+		{
+			var options = new DelayOptions.Normal()
+				.WithAutoFit(min, max);
+
+			options.Mean.Should().Be((min + max) / 2.0);
+			options.StandardDeviation.Should().Be((max - min) / 6.0);
 		}
 	}
 }

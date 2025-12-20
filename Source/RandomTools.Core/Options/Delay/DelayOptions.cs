@@ -97,6 +97,7 @@ namespace RandomTools.Core.Options.Delay
 			public override void Validate()
 			{
 				base.Validate();
+
 				EnsureFinite(Mean);
 				EnsureFinite(StandardDeviation);
 

@@ -165,8 +165,8 @@ namespace RandomTools.Tests.Options
 		[Test]
 		public void When_Samples_Is_Negative_Should_Throw_On_Validate()
 		{
-			const double min = 100;
-			const double max = 300;
+			const double min = 100.0;
+			const double max = 300.0;
 			const int samples = -5;
 
 			var options = new DelayOptions.Bates()

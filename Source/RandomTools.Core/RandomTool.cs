@@ -310,8 +310,7 @@ namespace RandomTools.Core
 						.WithTimeUnit(unit)
 						.WithAutoFit(minimum, maximum);
 
-					return sCache.GetOrAdd(options,
-						_ => new NormalDelay(options));
+					return sCache.GetOrAdd(options, _ => new NormalDelay(options));
 				}
 
 				/// <summary>
@@ -360,39 +359,37 @@ namespace RandomTools.Core
 						.WithMinimum(min)
 						.WithMaximum(max);
 
-					return sCache.GetOrAdd(options,
-						_ => new NormalDelay(options));
+					return sCache.GetOrAdd(options, _ => new NormalDelay(options));
 				}
 
 				/// <summary>
 				/// Same as <see cref="InMilliseconds(double,double,double,double)"/>  
 				/// but uses seconds as the time unit.
 				/// </summary>
-				public static NormalDelay InSeconds(double mean, double stdDev, double min, double max)
+				public static NormalDelay InSeconds(double mean, double stdDev, double minimum, double maximum)
 				{
 					var options = new DelayOptions.Normal()
 						.WithTimeUnit(TimeUnit.Second)
 						.WithMean(mean)
 						.WithStandardDeviation(stdDev)
-						.WithMinimum(min)
-						.WithMaximum(max);
+						.WithMinimum(minimum)
+						.WithMaximum(maximum);
 
-					return sCache.GetOrAdd(options,
-						_ => new NormalDelay(options));
+					return sCache.GetOrAdd(options, _ => new NormalDelay(options));
 				}
 
 				/// <summary>
 				/// Same as <see cref="InMilliseconds(double,double,double,double)"/>  
 				/// but uses minutes as the time unit.
 				/// </summary>
-				public static NormalDelay InMinutes(double mean, double stdDev, double min, double max)
+				public static NormalDelay InMinutes(double mean, double stdDev, double minimum, double maximum)
 				{
 					var options = new DelayOptions.Normal()
 						.WithTimeUnit(TimeUnit.Minute)
 						.WithMean(mean)
 						.WithStandardDeviation(stdDev)
-						.WithMinimum(min)
-						.WithMaximum(max);
+						.WithMinimum(minimum)
+						.WithMaximum(maximum);
 
 					return sCache.GetOrAdd(options,
 						_ => new NormalDelay(options));

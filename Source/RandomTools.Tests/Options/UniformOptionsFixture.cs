@@ -15,11 +15,13 @@ namespace RandomTools.Tests.Options
 		{
 			var options = new DelayOptions.Uniform();
 
-			options.Invoking(opt => opt.Validate())
+			var ex = options.Invoking(opt => opt.Validate())
 				.Should()
 				.Throw<OptionsValidationException>()
-				.Which.Options
-				.Should().BeSameAs(options);
+				.Which;
+
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().Contain(ExceptionMessages.RangeIsTooShort);
 		}
 
 		[Test]
@@ -34,8 +36,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"({value})");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().ContainAll(Keywords.Minimum, ExceptionMessages.Format(value, true));
 		}
 
 		[Test]
@@ -50,8 +52,8 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
-			ex.Message.Should().Contain($"({value})");
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
+			ex.Message.Should().Contain(ExceptionMessages.Format(value, true));
 		}
 
 		[Test]
@@ -69,7 +71,7 @@ namespace RandomTools.Tests.Options
 				.Throw<OptionsValidationException>()
 				.Which;
 
-			ex.Options.Should().BeSameAs(options);
+			ex.Options.Should().Be(options).And.NotBeSameAs(options);
 			ex.Message.Should().Contain($"({minimum})");
 			ex.Message.Should().Contain($"({maximum})");
 		}

@@ -3,18 +3,18 @@
 	/// <summary>
 	/// Provides statistical helper methods for analyzing numeric sample collections.
 	/// Includes:
-	/// - Mean, variance, and standard deviation calculation using Welford's algorithm.
+	/// - Mean, variance, and standard deviation calculation using Welford's numerically stable algorithm.
 	/// - Standard error of the mean (SEM) calculation.
-	/// - Confidence interval delta (half-width) calculation.
+	/// - Confidence interval half-width (delta) calculation.
 	/// - Histogram generation with max-bin tracking.
 	/// - Estimation of Bates distribution order from sample variance.
 	/// </summary>
 	internal static class Statistics
 	{
 		/// <summary>
-		/// Z-values corresponding to each <see cref="ConfidenceLevel"/>.
-		/// These are used to compute the confidence interval half-width (delta) for a given SEM.
-		/// The array is indexed by the enum value of <see cref="ConfidenceLevel"/>.
+		/// Z-values corresponding to each <see cref="ConfidenceLevel"/> used for computing
+		/// confidence intervals around the sample mean. These values come from the standard
+		/// normal distribution and correspond to the one-sided z-score for the given confidence.
 		/// </summary>
 		private static readonly double[] ZValues =
 		{
@@ -30,8 +30,9 @@
         };
 
 		/// <summary>
-		/// Ensures that the Z-values array matches the number of <see cref="ConfidenceLevel"/> entries.
-		/// Throws an exception if the lengths do not match.
+		/// Static constructor verifies that the Z-values array length matches the number
+		/// of <see cref="ConfidenceLevel"/> enum entries. Throws <see cref="InvalidOperationException"/>
+		/// if lengths do not match.
 		/// </summary>
 		static Statistics()
 		{
@@ -43,42 +44,59 @@
 		}
 
 		/// <summary>
-		/// Computes the confidence interval half-width (delta) for a given confidence level and SEM.
+		/// Computes the confidence interval half-width (delta) for a given confidence level and standard error of the mean.
+		/// The resulting delta can be used to assert that a sample mean is within ±delta of the expected mean.
 		/// </summary>
 		/// <param name="level">Confidence level (e.g., 95%).</param>
-		/// <param name="standardErrorOfMean">Standard error of the mean (SEM).</param>
+		/// <param name="standardErrorOfMean">Standard error of the mean (SD / √n).</param>
 		/// <returns>Half-width of the confidence interval.</returns>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="standardErrorOfMean"/> is negative.</exception>
 		public static double ConfidenceDelta(ConfidenceLevel level, double standardErrorOfMean)
 		{
 			ArgumentOutOfRangeException.ThrowIfNegative(standardErrorOfMean);
-
 			return ZValues[(int)level] * standardErrorOfMean;
 		}
 
 		/// <summary>
-		/// Computes the mean, variance, standard deviation, and sample count for a collection of numeric samples.
-		/// Uses Welford's online algorithm for numerically stable variance calculation.
+		/// Computes descriptive statistics for a sequence of numeric samples using Welford’s one-pass algorithm,
+		/// which is numerically stable and efficient for large datasets.
 		/// </summary>
-		/// <param name="samples">Collection of numeric samples.</param>
+		/// <param name="samples">The numeric samples to analyze.</param>
 		/// <returns>
 		/// A tuple containing:
-		/// - Mean of the samples.
-		/// - Sample variance (dividing by n-1).
-		/// - Standard deviation (sqrt of variance).
-		/// - Number of samples analyzed.
+		/// <list type="bullet">
+		///   <item><description><c>Mean</c> — Arithmetic mean (Σx / n).</description></item>
+		///   <item><description><c>Variance</c> — Sample variance (Σ(x-mean)² / (n-1)).</description></item>
+		///   <item><description><c>StandardDeviation</c> — Square root of the sample variance.</description></item>
+		///   <item><description><c>StandardError</c> — Standard error of the mean (SD / √n).</description></item>
+		///   <item><description><c>Skewness</c> — Measure of asymmetry of the distribution. 0 for symmetric distributions.</description></item>
+		///   <item><description><c>Count</c> — Number of samples analyzed.</description></item>
+		/// </list>
 		/// </returns>
-		/// <exception cref="ArgumentNullException">Thrown if <paramref name="samples"/> is null.</exception>
-		/// <exception cref="ArgumentException">Thrown if fewer than 2 samples are provided.</exception>
-		public static (double Mean, double Variance, double StandardDeviation, int Count) AnalyzeSamples(IEnumerable<double> samples)
+		/// <remarks>
+		/// Skewness is calculated as:  
+		/// <c>Skewness = (1/n) * Σ[(x_i - mean)/SD]^3</c>
+		/// </remarks>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="samples"/> is null.</exception>
+		/// <exception cref="ArgumentException">Thrown when fewer than two samples are provided.</exception>
+		public static (double Mean, double Variance, double StandardDeviation, double StandardError, double Skewness, int Count) AnalyzeSamples(IEnumerable<double> samples)
 		{
 			ArgumentNullException.ThrowIfNull(samples);
+
+			double[] values = [.. samples];
+
+			if (values.Length < 2)
+			{
+				throw new ArgumentException(
+					"At least two samples are required to compute variance.",
+					nameof(samples));
+			}
 
 			int count = 0;
 			double mean = 0.0;
 			double m2 = 0.0;
 
-			foreach (double next in samples)
+			foreach (double next in values)
 			{
 				count++;
 
@@ -87,58 +105,37 @@
 				m2 += delta * (next - mean);
 			}
 
-			if (count < 2)
-			{
-				throw new ArgumentException(
-					"At least two samples are required to compute variance and standard deviation.",
-					nameof(samples));
-			}
-
 			double variance = m2 / (count - 1);
-			return (mean, variance, Math.Sqrt(variance), count);
-		}
+			double standardDeviation = Math.Sqrt(variance);
+			double standardError = standardDeviation / Math.Sqrt(count);
+			double skewness = values.Sum(x => Math.Pow((x - mean) / standardDeviation, 3.0)) / count;
 
-		/// <summary>
-		/// Computes the standard error of the mean (SEM) given sample standard deviation and count.
-		/// SEM quantifies the expected deviation of the sample mean from the true population mean.
-		/// </summary>
-		/// <param name="stdDev">Sample standard deviation.</param>
-		/// <param name="sampleCount">Number of independent samples.</param>
-		/// <returns>Standard error of the mean.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// Thrown if <paramref name="stdDev"/> is negative or <paramref name="sampleCount"/> is less than 1.
-		/// </exception>
-		public static double StandardErrorOfMean(double stdDev, int sampleCount)
-		{
-			ArgumentOutOfRangeException.ThrowIfNegative(stdDev);
-			ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(sampleCount, 0);
-
-			return stdDev / Math.Sqrt(sampleCount);
+			return (mean, variance, standardDeviation, standardError, skewness, count);
 		}
 
 		/// <summary>
 		/// Estimates the order <c>n</c> of a Bates distribution from the sample variance.
 		/// The Bates distribution is the mean of <c>n</c> independent uniform random variables.
 		/// </summary>
-		/// <param name="variance">Sample variance of the Bates-distributed data.</param>
+		/// <param name="variance">Sample variance of Bates-distributed data.</param>
 		/// <param name="bounds">Minimum and maximum of the underlying uniform distribution.</param>
 		/// <returns>Estimated number of uniform variables averaged (n).</returns>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="variance"/> is negative.</exception>
 		public static double EstimateBatesOrder(double variance, (double Min, double Max) bounds)
 		{
 			ArgumentOutOfRangeException.ThrowIfNegative(variance);
-
+			
 			double range = bounds.Max - bounds.Min;
 			return range * range / (12.0 * variance);
 		}
 
 		/// <summary>
-		/// Estimates the mode of a sample set by identifying the histogram bin with the highest count.
+		/// Estimates the mode of a sample set by identifying the histogram bin with the maximum count.
 		/// Returns the midpoint of that bin.
 		/// </summary>
-		/// <remarks>
-		/// This is a non-parametric estimator suitable for arbitrarily shaped distributions.
-		/// </remarks>
+		/// <param name="samples">Sample values.</param>
+		/// <param name="bins">Number of histogram bins.</param>
+		/// <returns>Midpoint of the most frequent bin.</returns>
 		public static double EstimateMode(IEnumerable<double> samples, int bins)
 		{
 			ArgumentNullException.ThrowIfNull(samples);
@@ -149,22 +146,11 @@
 		}
 
 		/// <summary>
-		/// Computes a histogram for numeric samples within specified bounds and bin count.
-		/// Tracks the number of samples in each bin and the bin with the maximum count.
+		/// Computes a histogram for numeric samples.
 		/// </summary>
-		/// <param name="samples">Collection of numeric samples.</param>
-		/// <param name="bounds">Minimum and maximum bounds of the histogram.</param>
+		/// <param name="samples">Numeric samples.</param>
 		/// <param name="bins">Number of bins (default 100).</param>
-		/// <returns>
-		/// A <see cref="Histogram"/> object containing:
-		/// - Counts per bin.
-		/// - Bin width.
-		/// - Index and value range of the bin with the maximum count.
-		/// </returns>
-		/// <exception cref="ArgumentNullException">Thrown if <paramref name="samples"/> is null.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// Thrown if <paramref name="bins"/> is less than 1 or if <paramref name="bounds"/> are invalid.
-		/// </exception>
+		/// <returns>A <see cref="Histogram"/> object containing counts per bin and max-bin info.</returns>
 		public static Histogram ComputeHistogram(IEnumerable<double> samples, int bins = 100)
 		{
 			ArgumentNullException.ThrowIfNull(samples);
@@ -176,7 +162,8 @@
 			var hist = new Histogram
 			{
 				Bins = bins,
-				Min = min, Max = max,
+				Min = min,
+				Max = max,
 				Width = (max - min) / bins,
 				Counts = new int[bins]
 			};
@@ -205,39 +192,18 @@
 	/// </summary>
 	internal sealed class Histogram
 	{
-		/// <summary>Number of bins in the histogram.</summary>
 		public int Bins { get; init; }
-
 		public double Min { get; init; }
-
 		public double Max { get; init; }
-
-		/// <summary>Width of each bin.</summary>
 		public double Width { get; init; }
-
-		/// <summary>Count of samples in each bin.</summary>
 		public int[] Counts { get; init; } = [];
-
-		/// <summary>Maximum count in any single bin.</summary>
 		public int MaxHits { get; set; }
-
-		/// <summary>Index of the bin with the maximum count.</summary>
 		public int MaxBin { get; set; } = -1;
-
-		public int FindBin(double value)
-		{
-			if (value < Min || value > Max)
-				return -1;
-
-			int idx = (int)((value - Min) / Width);
-			if (idx >= Bins)
-				idx = Bins - 1;
-
-			return idx;
-		}
 	}
 
-	/// <summary>Supported confidence levels for computing confidence intervals.</summary>
+	/// <summary>
+	/// Supported confidence levels for computing confidence intervals.
+	/// </summary>
 	internal enum ConfidenceLevel
 	{
 		Confidence80,
